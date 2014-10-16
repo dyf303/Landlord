@@ -4,7 +4,7 @@
 #include "Configuration/Config.h"
 
 #ifndef _LANDLORD_CORE_CONFIG
-#define _LANDLORD_CORE_CONFIG  "roomServer.conf"
+#define _LANDLORD_CORE_CONFIG  "worldserver.conf"
 #endif
 
 
@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < numThreads; ++i)
 		threadPool.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &_ioService)));
 		
-
+	getchar();
 	return 0;
 }
 
