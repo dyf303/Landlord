@@ -119,6 +119,7 @@ inline bool Log::ShouldLog(std::string const& type, LogLevel level) const
 
     LogLevel logLevel = logger->getLogLevel();
     return logLevel != LOG_LEVEL_DISABLED && logLevel <= level;
+
 }
 
 inline void Log::outMessage(std::string const& filter, LogLevel level, const char * str, ...)

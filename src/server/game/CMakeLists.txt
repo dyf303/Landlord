@@ -5,6 +5,11 @@ file(GLOB_RECURSE sources_World World/*.cpp World/*.h)
 
 # Create game-libary
 
+if (USE_COREPCH)
+  set(game_STAT_PCH_HDR PrecompiledHeaders/gamePCH.h)
+  set(game_STAT_PCH_SRC PrecompiledHeaders/gamePCH.cpp)
+endif ()
+
 set(game_STAT_SRCS
   ${sources_AI}
   ${sources_Server}
@@ -23,11 +28,19 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/server/shared/Utilities
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/AI
-    ${CMAKE_CURRENT_SOURCE_DIR}/Server/Protocol
+  ${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeaders
+  ${CMAKE_CURRENT_SOURCE_DIR}/Server/Protocol
   ${CMAKE_CURRENT_SOURCE_DIR}/Server
   ${CMAKE_CURRENT_SOURCE_DIR}/World
 )
 
 add_library(game STATIC
   ${game_STAT_SRCS}
+  ${game_STAT_PCH_SRC}
 )
+
+# Generate precompiled header
+if (USE_COREPCH)
+  add_cxx_pch(game ${game_STAT_PCH_HDR} ${game_STAT_PCH_SRC})
+endif ()
+

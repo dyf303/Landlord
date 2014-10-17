@@ -13,6 +13,11 @@ file(GLOB sources_localdir *.cpp *.h)
 
 set(sources_Debugging Debugging/Errors.cpp Debugging/Errors.h)
 
+if (USE_COREPCH)
+  set(shared_STAT_PCH_HDR PrecompiledHeaders/sharedPCH.h)
+  set(shared_STAT_PCH_SRC PrecompiledHeaders/sharedPCH.cpp)
+endif()
+
 set(shared_STAT_SRCS
   ${shared_STAT_SRCS}
   ${sources_Configuration}
@@ -41,4 +46,10 @@ include_directories(
 
 add_library(shared STATIC
   ${shared_STAT_SRCS}
+  ${shared_STAT_PCH_SRC}
 )
+
+# Generate precompiled header
+if (USE_COREPCH)
+  add_cxx_pch(shared ${shared_STAT_PCH_HDR} ${shared_STAT_PCH_SRC})
+endif ()
