@@ -30,7 +30,6 @@ namespace boost
 }
 
 #include "Common.h"
-#include "AuthCrypt.h"
 #include "ServerPktHeader.h"
 #include "Socket.h"
 #include "Util.h"
@@ -123,7 +122,6 @@ private:
     void HandlePing(WorldPacket& recvPacket);
 
     uint32 _authSeed;
-    AuthCrypt _authCrypt;
 
     std::chrono::steady_clock::time_point _LastPingTime;
     uint32 _OverSpeedPings;

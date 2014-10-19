@@ -3,8 +3,12 @@ project(Landlord)
 
 cmake_minimum_required(VERSION 2.8.9)
 
+
 # set macro-directory
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/macros")
+
+include(CheckCXXSourceRuns)
+include(CheckIncludeFiles)
 
 # set default buildoptions and print them
 include(cmake/options.cmake)

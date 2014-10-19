@@ -18,6 +18,20 @@
 
 ThreadPool = 2
 
+#
+#    WorldServerPort
+#        Description: TCP port to reach the world server.
+#        Default:     8085
+
+WorldServerPort = 8085
+
+#
+#    BindIP
+#        Description: Bind world server to IP/hostname.
+#        Default:     "0.0.0.0" - (Bind to all IPs on the system)
+
+BindIP = "0.0.0.0"
+
 #  Logger config values: Given a logger "name"
 #    Logger.name
 #        Description: Defines 'What to log'

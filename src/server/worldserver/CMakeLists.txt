@@ -45,6 +45,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/server/game
   ${CMAKE_SOURCE_DIR}/src/server/game/AI
   ${CMAKE_SOURCE_DIR}/src/server/game/PrecompiledHeaders
+  ${CMAKE_SOURCE_DIR}/src/server/game/Server/Protocol
   ${CMAKE_SOURCE_DIR}/src/server/game/Server
   ${CMAKE_SOURCE_DIR}/src/server/game/World
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -55,7 +56,9 @@ add_executable(worldserver
    ${worldserver_PCH_SRC}
 )
 
+
 target_link_libraries(worldserver 
+  game
   shared
   ${Boost_LIBRARIES})
 

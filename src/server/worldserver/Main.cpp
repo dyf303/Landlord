@@ -1,7 +1,12 @@
 #include <boost/asio.hpp>
 #include <thread>
 
-//#include "Configuration/Config.h"
+#include "AsyncAcceptor.h"
+#include "Configuration/Config.h"
+#include "Log.h"
+#include "World.h"
+#include "WorldSocket.h"
+
 
 #ifndef _LANDLORD_CORE_CONFIG
 #define _LANDLORD_CORE_CONFIG  "worldserver.conf"
@@ -22,7 +27,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	TC_LOG_INFO("server.worldserver", "<Ctrl-C> to stop.\n");
+	TC_LOG_TRACE("network.opcode", "C->S: ");
 
 	boost::asio::signal_set signals(_ioService, SIGINT, SIGTERM);
 #if PLATFORM == PLATFORM_WINDOWS
@@ -39,7 +44,15 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < numThreads; ++i)
 		threadPool.push_back(std::thread(boost::bind(&boost::asio::io_service::run, &_ioService)));
 
-	//TC_LOG_INFO("server.worldserver", "<Ctrl-C> to stop.\n");
+	// Initialize the World
+	//sWorld->SetInitialWorldSettings();
+
+	// Launch the worldserver listener socket
+//	uint16 worldPort = uint16(sWorld->getIntConfig(CONFIG_PORT_WORLD));
+//	std::string worldListener = sConfigMgr->GetStringDefault("BindIP", "0.0.0.0");
+//	bool tcpNoDelay = sConfigMgr->GetBoolDefault("Network.TcpNodelay", true);
+
+//	AsyncAcceptor<WorldSocket> worldAcceptor(_ioService, worldListener, worldPort, tcpNoDelay);
 
 	getchar();
 	return 0;

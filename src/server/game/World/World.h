@@ -6,13 +6,14 @@
 #include "Common.h"
 #include "Timer.h"
 
-/// The World
-
 enum WorldIntConfigs
 {
 	CONFIG_PORT_WORLD = 0,
-	INT_CONFIG_VALUE_COUNT
+	INT_CONFIG_VALUE_COUNT,
+	CONFIG_SOCKET_TIMEOUTTIME
 };
+
+/// The World
 class World
 {
 public:
@@ -23,6 +24,13 @@ public:
 	}
 
 	void SetInitialWorldSettings();
+	void LoadConfigSettings(bool reload = false);
+
+	/// Get a server configuration element (see #WorldConfigs)
+	uint32 getIntConfig(WorldIntConfigs index) const
+	{
+		return index < INT_CONFIG_VALUE_COUNT ? m_int_configs[index] : 0;
+	}
 
 private:
 	World();
