@@ -55,7 +55,8 @@ bool WorldSessionFilter::Process(WorldPacket* packet)
 /// WorldSession constructor
 WorldSession::WorldSession(uint32 id, std::shared_ptr<WorldSocket> sock):
     m_Socket(sock),
-    _accountId(id)
+    _accountId(id),
+	forceExit(false)
 {
     if (sock)
     {
@@ -309,7 +310,15 @@ bool WorldSession::Update(uint32 diff, PacketFilter& updater)
 
 */
 
-
+/// Kick a player out of the World
+void WorldSession::KickPlayer()
+{
+	if (m_Socket)
+	{
+		m_Socket->CloseSocket();
+		forceExit = true;
+	}
+}
 
 
 

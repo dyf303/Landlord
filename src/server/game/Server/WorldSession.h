@@ -78,6 +78,7 @@ class WorldSession
 
 		void QueuePacket(WorldPacket* new_packet);
         void SendPacket(WorldPacket* packet);
+		void KickPlayer();
     public:                                                 // opcodes handlers
 
     friend class World;
@@ -93,6 +94,8 @@ class WorldSession
 
         WorldSession(WorldSession const& right) = delete;
         WorldSession& operator=(WorldSession const& right) = delete;
+
+		bool forceExit;
 };
 #endif
 /// @}
