@@ -121,9 +121,8 @@ bool WorldSession::Update(uint32 diff)
     WorldPacket* packet = NULL;
 
     uint32 processedPackets = 0;
-    time_t currentTime = time(NULL);
 
-    while (m_Socket && !_recvQueue.empty() && _recvQueue.next(packet))
+	while (m_Socket && !_recvQueue.empty() && _recvQueue.next(packet))
     {
 		OpcodeHandler& opHandle = opcodeTable[packet->GetOpcode()];
 

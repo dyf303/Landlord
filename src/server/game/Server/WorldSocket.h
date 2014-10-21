@@ -45,7 +45,7 @@ using boost::asio::ip::tcp;
 
 struct ClientPktHeader
 {
-    uint16 size;
+	uint32 size;
     uint32 cmd;
 
     bool IsValid() const { return size >= 4 && size < 10240 && cmd < NUM_MSG_TYPES; }
@@ -119,12 +119,7 @@ private:
     void HandleAuthSession(WorldPacket& recvPacket);
     void SendAuthResponseError(uint8 code);
 
-    void HandlePing(WorldPacket& recvPacket);
-
-    uint32 _authSeed;
-
     std::chrono::steady_clock::time_point _LastPingTime;
-    uint32 _OverSpeedPings;
 
     WorldSession* _worldSession;
 };

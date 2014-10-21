@@ -29,7 +29,7 @@
 enum Opcodes
 {
 	MSG_NULL_ACTION                 = 0x00,
-	CMSG__CONNECT                   = 0x00,	                          /// 0连接房间服务器
+	CMSG_PLAYER_LOGIN               = 0x00,	                          /// 0连接房间服务器
 	SMSG_DESK_TWO                   = 0x01,							  /// 1双人桌
 	CMSG_DESK_THREE                 = 0x02,							  /// 2三人桌
 	CMSG_WAIT_START                 = 0x03,							  /// 3等待开始

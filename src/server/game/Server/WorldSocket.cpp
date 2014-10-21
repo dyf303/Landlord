@@ -24,7 +24,7 @@
 using boost::asio::ip::tcp;
 
 WorldSocket::WorldSocket(tcp::socket&& socket)
-    : Socket(std::move(socket), sizeof(ClientPktHeader)), _authSeed(rand32()), _OverSpeedPings(0), _worldSession(nullptr)
+    : Socket(std::move(socket), sizeof(ClientPktHeader)), _worldSession(nullptr)
 {
 }
 
@@ -44,8 +44,8 @@ void WorldSocket::ReadHeaderHandler()
   //  _authCrypt.DecryptRecv(GetHeaderBuffer(), sizeof(ClientPktHeader));
 
     ClientPktHeader* header = reinterpret_cast<ClientPktHeader*>(GetHeaderBuffer());
-    EndianConvertReverse(header->size);
-    EndianConvert(header->cmd);
+   // EndianConvertReverse(header->size);
+   // EndianConvert(header->cmd);
 
     if (!header->IsValid())
     {
@@ -63,7 +63,7 @@ void WorldSocket::ReadHeaderHandler()
         return;
     }
 
-    AsyncReadData(header->size - sizeof(header->cmd));
+	AsyncReadData(header->size - sizeof(ClientPktHeader));
 }
 
 void WorldSocket::ReadDataHandler()
@@ -83,10 +83,7 @@ void WorldSocket::ReadDataHandler()
 
     switch (opcode)
     {
-        case 1/*CMSG_PING*/:
-            HandlePing(packet);
-            break;
-        case 2/*CMSG_AUTH_SESSION*/:
+		case CMSG_PLAYER_LOGIN:
             if (_worldSession)
             {
             //    TC_LOG_ERROR("network", "WorldSocket::ProcessIncoming: received duplicate CMSG_AUTH_SESSION from %s", _worldSession->GetPlayerInfo().c_str());
@@ -106,7 +103,7 @@ void WorldSocket::ReadDataHandler()
 
             // Our Idle timer will reset on any non PING opcodes.
             // Catches people idling on the login screen and any lingering ingame connections.
-          //  _worldSession->ResetTimeOutTime();
+            _worldSession->ResetTimeOutTime();
 
             // Copy the packet to the heap before enqueuing
             _worldSession->QueuePacket(new WorldPacket(std::move(packet)));
@@ -127,12 +124,12 @@ void WorldSocket::AsyncWrite(WorldPacket& packet)
 
   //  TC_LOG_TRACE("network.opcode", "S->C: %s %s", (_worldSession ? _worldSession->GetPlayerInfo() : GetRemoteIpAddress().to_string()).c_str(), GetOpcodeNameForLogging(packet.GetOpcode()).c_str());
 
-    ServerPktHeader header(packet.size() + 2, packet.GetOpcode());
+	uint32 Opcode = packet.GetOpcode();
+	ServerPktHeader header(packet.size() + sizeof(Opcode), Opcode);
 
     std::lock_guard<std::mutex> guard(_writeLock);
 
     bool needsWriteStart = _writeQueue.empty();
-  //  _authCrypt.EncryptSend(header.header, header.getHeaderLength());
 
     _writeQueue.emplace(header, packet);
 
@@ -142,16 +139,20 @@ void WorldSocket::AsyncWrite(WorldPacket& packet)
 
 void WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
 {
-   
+	uint32 spaceid, roomid, RequestSameRoom;
+	recvPacket.read_skip<uint32[2]>();
+	
+	recvPacket >> spaceid >> roomid >> RequestSameRoom;
+	std::cout << "spaceid: " << spaceid << " roomid: " << roomid << " RequestSameRoom: " << RequestSameRoom << std::endl;
+
+	WorldPacket packet(CMSG_PLAYER_LOGIN, 4);
+	
+	packet <<uint32(1)<<uint32(2)<< uint32(3);
+	return AsyncWrite(packet);
 }
 
 void WorldSocket::SendAuthResponseError(uint8 code)
 {
-}
-
-void WorldSocket::HandlePing(WorldPacket& recvPacket)
-{
-  
 }
 
 void WorldSocket::CloseSocket()
