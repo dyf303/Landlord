@@ -95,10 +95,6 @@ void WorldSocket::ReadDataHandler()
 
             HandleAuthSession(packet);
             break;
-        case 3/*CMSG_KEEP_ALIVE*/:
-            TC_LOG_DEBUG("network", "%s", opcodeName.c_str());
-           // sScriptMgr->OnPacketReceive(_worldSession, packet);
-            break;
         default:
         {
             if (!_worldSession)
@@ -160,7 +156,5 @@ void WorldSocket::HandlePing(WorldPacket& recvPacket)
 
 void WorldSocket::CloseSocket()
 {
-  //  sScriptMgr->OnSocketClose(shared_from_this());
-
     Socket::CloseSocket();
 }

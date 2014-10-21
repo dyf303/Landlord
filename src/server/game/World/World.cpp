@@ -15,29 +15,45 @@ World::World()
 
 World::~World()
 {
-
+	///- Empty the kicked session set
+	while (!m_sessions.empty())
+	{
+		// not remove from queue, prevent loading new sessions
+		delete m_sessions.begin()->second;
+		m_sessions.erase(m_sessions.begin());
+	}
 }
 
 /// Remove a given session
 bool World::RemoveSession(uint32 id)
 {
-	///- Find the session, kick the user, but we can't delete session at this moment to prevent iterator invalidation
 	SessionMap::const_iterator itr = m_sessions.find(id);
 
 	if (itr != m_sessions.end() && itr->second)
 	{
-		//if (itr->second->PlayerLoading())
-		//	return false;
-
-		itr->second->KickPlayer();
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 void World::AddSession(WorldSession* s)
 {
 	addSessQueue.add(s);
+}
+
+void World::AddSession_(WorldSession* s)
+{
+	ASSERT(s);
+
+	if (RemoveSession(s->GetAccountId()))
+	{
+		s->KickPlayer();
+		delete s;                                   
+		return;
+	}
+
+	m_sessions[s->GetAccountId()] = s;
 }
 
 /// Initialize the World
@@ -83,7 +99,7 @@ void World::LoadConfigSettings(bool reload)
 /// Update the World !
 void World::Update(uint32 diff)
 {
-
+	UpdateSessions(diff);
 }
 
 void World::UpdateSessions(uint32 diff)
@@ -101,16 +117,11 @@ void World::UpdateSessions(uint32 diff)
 
 		///- and remove not active sessions from the list
 		WorldSession* pSession = itr->second;
-		WorldSessionFilter updater(pSession);
 
-		if (!pSession->Update(diff, updater))    // As interval = 0
+		if (!pSession->Update(diff))    // As interval = 0
 		{
-			if (!RemoveQueuedPlayer(itr->second) && itr->second && getIntConfig(CONFIG_INTERVAL_DISCONNECT_TOLERANCE))
-				m_disconnects[itr->second->GetAccountId()] = time(NULL);
-			RemoveQueuedPlayer(pSession);
 			m_sessions.erase(itr);
 			delete pSession;
-
 		}
 	}
 }
@@ -118,8 +129,6 @@ void World::UpdateSessions(uint32 diff)
 /// Kick (and save) all players
 void World::KickAll()
 {
-	//m_QueuedPlayer.clear();                                 // prevent send queue update packet and login queued sessions
-
 	// session not removed at kick and will removed in next update tick
 	for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
 		itr->second->KickPlayer();

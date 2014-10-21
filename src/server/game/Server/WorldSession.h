@@ -35,40 +35,6 @@ class WorldPacket;
 class WorldSocket;
 
 
-
-
-//class to deal with packet processing
-//allows to determine if next packet is safe to be processed
-class PacketFilter
-{
-public:
-    explicit PacketFilter(WorldSession* pSession) : m_pSession(pSession) { }
-    virtual ~PacketFilter() { }
-
-    virtual bool Process(WorldPacket* /*packet*/) { return true; }
-    virtual bool ProcessLogout() const { return true; }
-
-protected:
-    WorldSession* const m_pSession;
-
-private:
-    PacketFilter(PacketFilter const& right) = delete;
-    PacketFilter& operator=(PacketFilter const& right) = delete;
-};
-
-
-//class used to filer only thread-unsafe packets from queue
-//in order to update only be used in World::UpdateSessions()
-class WorldSessionFilter : public PacketFilter
-{
-public:
-    explicit WorldSessionFilter(WorldSession* pSession) : PacketFilter(pSession) { }
-    ~WorldSessionFilter() { }
-
-    virtual bool Process(WorldPacket* packet) override;
-};
-
-
 /// Player session in the World
 class WorldSession
 {
@@ -76,10 +42,31 @@ class WorldSession
         WorldSession(uint32 id, std::shared_ptr<WorldSocket> sock);
         ~WorldSession();
 
+		uint32 GetAccountId() const { return _accountId; }
+
 		void QueuePacket(WorldPacket* new_packet);
         void SendPacket(WorldPacket* packet);
 		void KickPlayer();
+
+		bool Update(uint32 diffr);
+
+		std::atomic<int32> m_timeOutTime;
+
+		void UpdateTimeOutTime(uint32 diff)
+		{
+			m_timeOutTime -= int32(diff);
+		}
+		void ResetTimeOutTime()
+		{
+			m_timeOutTime = int32(sWorld->getIntConfig(CONFIG_SOCKET_TIMEOUTTIME));
+		}
+
+		bool IsTimeOutTime() const
+		{
+			return m_timeOutTime <= 0;
+		}
     public:                                                 // opcodes handlers
+		void Handle_NULL(WorldPacket& recvPacket);          // not used
 
     friend class World;
  
@@ -95,6 +82,7 @@ class WorldSession
         WorldSession(WorldSession const& right) = delete;
         WorldSession& operator=(WorldSession const& right) = delete;
 
+		uint32 expireTime;
 		bool forceExit;
 };
 #endif

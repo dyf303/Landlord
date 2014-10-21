@@ -70,8 +70,8 @@ int main(int argc, char* argv[])
 
 void SignalHandler(const boost::system::error_code& error, int /*signalNumber*/)
 {
-	//if (!error)
-		//World::StopNow(SHUTDOWN_EXIT_CODE);
+	if (!error)
+		World::StopNow(SHUTDOWN_EXIT_CODE);
 }
 
 void WorldUpdateLoop()
@@ -109,8 +109,6 @@ void WorldUpdateLoop()
 
 void ShutdownThreadPool(std::vector<std::thread>& threadPool)
 {
-	sScriptMgr->OnNetworkStop();
-
 	_ioService.stop();
 
 	for (auto& thread : threadPool)

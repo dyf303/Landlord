@@ -28,27 +28,28 @@
 /// List of Opcodes
 enum Opcodes
 {
-  
-    NUM_MSG_TYPES                                   = 0x51F
+	MSG_NULL_ACTION                 = 0x00,
+	CMSG__CONNECT                   = 0x00,	                          /// 0连接房间服务器
+	SMSG_DESK_TWO                   = 0x01,							  /// 1双人桌
+	CMSG_DESK_THREE                 = 0x02,							  /// 2三人桌
+	CMSG_WAIT_START                 = 0x03,							  /// 3等待开始
+	CMSG_CARD_DEAL                  = 0x04,							  /// 4发牌
+	CMSG_GRAD_LANDLORD              = 0X05,						      /// 5叫分
+	CMSG_DOUBLE_SCORE               = 0x06,						      /// 6加倍
+	CMSG_SHOW_CARD                  = 0x07,						      /// 7明牌
+	CMSG_CARD_OUT                   = 0x08,						      /// 8出牌
+	CMSG_REQUEST_CARDS_LEFT         = 0x09 ,                          /// 9请求其它各家手里的余牌信息
+	CMSG_ROUND_OVER                 = 0x0A    ,                       /// 10一局结束(各家要上传分数)
+	CMSG_CHANGE_DESK                = 0x0B  ,                         /// 11换桌子
+	CMSG_CHAT_SHORTCUT              = 0x0C,						      /// 12快捷语
+	CMSG_CHAT_ICON                  = 0x0D,							  /// 13表情
+	CMSG_CHAT_CONTEXT               = 0x0E,						      /// 14输入聊天内容
+	CMSG_PING                       = 0x0F ,                          /// 15房间心跳包服务
+	CMSG_EXIT                       = 0x10,						      /// 16退出房间
+	CMSG_INCREMENT_GOLD             = 0x11   ,                        /// 17房间增加金币服务
+    NUM_MSG_TYPES                   = 0x12
 };
 
-/// Player state
-enum SessionStatus
-{
-	STATUS_AUTHED = 0,                                      // Player authenticated (_player == NULL, m_playerRecentlyLogout = false or will be reset before handler call, m_GUID have garbage)
-	STATUS_LOGGEDIN,                                        // Player in game (_player != NULL, m_GUID == _player->GetGUID(), inWorld())
-	STATUS_TRANSFER,                                        // Player transferring to another map (_player != NULL, m_GUID == _player->GetGUID(), !inWorld())
-	STATUS_LOGGEDIN_OR_RECENTLY_LOGGOUT,                    // _player != NULL or _player == NULL && m_playerRecentlyLogout && m_playerLogout, m_GUID store last _player guid)
-	STATUS_NEVER,                                           // Opcode not accepted from client (deprecated or server side only)
-	STATUS_UNHANDLED                                        // Opcode not handled yet
-};
-
-enum PacketProcessing
-{
-	PROCESS_INPLACE = 0,                                    //process packet whenever we receive it - mostly for non-handled or non-implemented packets
-	PROCESS_THREADUNSAFE,                                   //packet is not thread-safe - process it in World::UpdateSessions()
-	PROCESS_THREADSAFE                                      //packet is thread-safe - process it in Map::Update()
-};
 
 class WorldSession;
 class WorldPacket;
@@ -62,8 +63,6 @@ class WorldPacket;
 struct OpcodeHandler
 {
     char const* name;
-    SessionStatus status;
-    PacketProcessing packetProcessing;
     void (WorldSession::*handler)(WorldPacket& recvPacket);
 };
 
