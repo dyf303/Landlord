@@ -48,7 +48,7 @@ void World::AddSession_(WorldSession* s)
 
 	if (RemoveSession(s->GetAccountId()))
 	{
-		s->KickPlayer();
+		//s->KickPlayer();
 		delete s;                                   
 		return;
 	}

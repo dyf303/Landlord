@@ -30,6 +30,7 @@
 
 #include <unordered_set>
 
+class Player;
 class Unit;
 class WorldPacket;
 class WorldSocket;
@@ -65,25 +66,28 @@ class WorldSession
 		{
 			return m_timeOutTime <= 0;
 		}
+		void SendLoginError(uint8 code);
     public:                                                 // opcodes handlers
 		void Handle_NULL(WorldPacket& recvPacket);          // not used
+		void HandlePlayerLogin(WorldPacket& recvPacket);
 
     friend class World;
  
 
     private:
 
-        std::shared_ptr<WorldSocket> m_Socket;
-        std::string m_Address;                // Current Remote Address
+        std::shared_ptr<WorldSocket> _Socket;
+        std::string _Address;                // Current Remote Address
 		uint32 _accountId;
+		Player* _player;
 
         LockedQueue<WorldPacket*> _recvQueue;
 
         WorldSession(WorldSession const& right) = delete;
         WorldSession& operator=(WorldSession const& right) = delete;
 
-		uint32 expireTime;
-		bool forceExit;
+		uint32 _expireTime;
+		bool _forceExit;
 };
 #endif
 /// @}

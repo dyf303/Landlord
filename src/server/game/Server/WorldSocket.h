@@ -115,9 +115,7 @@ protected:
     void ReadDataHandler() override;
 
 private:
-    void HandleSendAuthSession();
-    void HandleAuthSession(WorldPacket& recvPacket);
-    void SendAuthResponseError(uint8 code);
+    void AddSession(WorldPacket& recvPacket);
 
     std::chrono::steady_clock::time_point _LastPingTime;
 

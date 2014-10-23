@@ -19,6 +19,7 @@
 #include "WorldSocket.h"
 #include "Opcodes.h"
 #include "PacketLog.h"
+#include "Player.h"
 #include <memory>
 
 using boost::asio::ip::tcp;
@@ -30,22 +31,12 @@ WorldSocket::WorldSocket(tcp::socket&& socket)
 
 void WorldSocket::Start()
 {
-   // sScriptMgr->OnSocketOpen(shared_from_this());
     AsyncReadHeader();
-    HandleSendAuthSession();
-}
-
-void WorldSocket::HandleSendAuthSession()
-{
 }
 
 void WorldSocket::ReadHeaderHandler()
 {
-  //  _authCrypt.DecryptRecv(GetHeaderBuffer(), sizeof(ClientPktHeader));
-
     ClientPktHeader* header = reinterpret_cast<ClientPktHeader*>(GetHeaderBuffer());
-   // EndianConvertReverse(header->size);
-   // EndianConvert(header->cmd);
 
     if (!header->IsValid())
     {
@@ -80,6 +71,8 @@ void WorldSocket::ReadDataHandler()
         sPacketLog->LogPacket(packet, CLIENT_TO_SERVER, GetRemoteIpAddress(), GetRemotePort());
 
    // TC_LOG_TRACE("network.opcode", "C->S: %s %s", (_worldSession ? _worldSession->GetPlayerInfo() : GetRemoteIpAddress().to_string()).c_str(), opcodeName.c_str());
+	
+	packet.read_skip<uint32[2]>();
 
     switch (opcode)
     {
@@ -90,7 +83,7 @@ void WorldSocket::ReadDataHandler()
                 break;
             }
 
-            HandleAuthSession(packet);
+            AddSession(packet);
             break;
         default:
         {
@@ -137,22 +130,12 @@ void WorldSocket::AsyncWrite(WorldPacket& packet)
         AsyncWrite(_writeQueue.front());
 }
 
-void WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
+void WorldSocket::AddSession(WorldPacket& recvPacket)
 {
-	uint32 spaceid, roomid, RequestSameRoom;
-	recvPacket.read_skip<uint32[2]>();
-	
-	recvPacket >> spaceid >> roomid >> RequestSameRoom;
-	std::cout << "spaceid: " << spaceid << " roomid: " << roomid << " RequestSameRoom: " << RequestSameRoom << std::endl;
+	_worldSession = new WorldSession(recvPacket.peek<uint32>(20), shared_from_this());
+	_worldSession->QueuePacket(new WorldPacket(std::move(recvPacket)));
 
-	WorldPacket packet(CMSG_PLAYER_LOGIN, 4);
-	
-	packet <<uint32(1)<<uint32(2)<< uint32(3);
-	return AsyncWrite(packet);
-}
-
-void WorldSocket::SendAuthResponseError(uint8 code)
-{
+	sWorld->AddSession(_worldSession);
 }
 
 void WorldSocket::CloseSocket()

@@ -336,6 +336,14 @@ class ByteBuffer
             _rpos += sizeof(T);
             return r;
         }
+		template <typename T> T peek(size_t pos)
+		{
+			if (pos + sizeof(T) > size())
+				throw ByteBufferPositionException(false, pos, sizeof(T), size());
+
+			T val = *((T const*)&_storage[pos]);
+			return  val;
+		}
 
         template <typename T> T read(size_t pos) const
         {

@@ -25,20 +25,22 @@
 #include "Common.h"
 #include "Log.h"
 #include "Opcodes.h"
+#include "Player.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include "World.h"
 
 /// WorldSession constructor
 WorldSession::WorldSession(uint32 id, std::shared_ptr<WorldSocket> sock):
-    m_Socket(sock),
+    _Socket(sock),
     _accountId(id),
-	expireTime(60000), // 1 min after socket loss, session is deleted
-	forceExit(false)
+	_player(nullptr),
+	_expireTime(60000), // 1 min after socket loss, session is deleted
+	_forceExit(false)
 {
     if (sock)
     {
-        m_Address = sock->GetRemoteIpAddress().to_string();
+        _Address = sock->GetRemoteIpAddress().to_string();
 		ResetTimeOutTime();
     }
 }
@@ -46,11 +48,16 @@ WorldSession::WorldSession(uint32 id, std::shared_ptr<WorldSocket> sock):
 /// WorldSession destructor
 WorldSession::~WorldSession()
 {
+	/// not login game
+	if (!_player)
+	{
+		SendLoginError(3);
+	}
     /// - If have unclosed socket, close it
-    if (m_Socket)
+    if (_Socket)
     {
-        m_Socket->CloseSocket();
-        m_Socket = nullptr;
+        _Socket->CloseSocket();
+        _Socket = nullptr;
     }
 
     ///- empty incoming packet queue
@@ -62,7 +69,7 @@ WorldSession::~WorldSession()
 /// Send a packet to the client
 void WorldSession::SendPacket(WorldPacket* packet)
 {
-    if (!m_Socket)
+    if (!_Socket)
         return;
 
 #ifdef TRINITY_DEBUG
@@ -99,7 +106,7 @@ void WorldSession::SendPacket(WorldPacket* packet)
     }
 #endif                                                      // !TRINITY_DEBUG
 
-    m_Socket->AsyncWrite(*packet);
+    _Socket->AsyncWrite(*packet);
 }
 
 /// Add an incoming packet to the queue
@@ -116,13 +123,13 @@ bool WorldSession::Update(uint32 diff)
 	UpdateTimeOutTime(diff);
 
 	if (IsTimeOutTime())
-		m_Socket->CloseSocket();
+		_Socket->CloseSocket();
 
     WorldPacket* packet = NULL;
 
     uint32 processedPackets = 0;
 
-	while (m_Socket && !_recvQueue.empty() && _recvQueue.next(packet))
+	while (_Socket && !_recvQueue.empty() && _recvQueue.next(packet))
     {
 		OpcodeHandler& opHandle = opcodeTable[packet->GetOpcode()];
 
@@ -135,16 +142,16 @@ bool WorldSession::Update(uint32 diff)
             break;
     }
         ///- Cleanup socket pointer if need
-        if (m_Socket && !m_Socket->IsOpen())
+        if (_Socket && !_Socket->IsOpen())
         {
-            expireTime -= expireTime > diff ? diff : expireTime;
-            if (expireTime < diff || forceExit /*|| !GetPlayer()*/)
+            _expireTime -= _expireTime > diff ? diff : _expireTime;
+            if (_expireTime < diff || _forceExit /*|| !GetPlayer()*/)
             {
-                m_Socket = nullptr;
+                _Socket = nullptr;
             }
         }
 
-        if (!m_Socket)
+        if (!_Socket)
             return false;                                   
   
     return true;
@@ -153,10 +160,10 @@ bool WorldSession::Update(uint32 diff)
 /// Kick a player out of the World
 void WorldSession::KickPlayer()
 {
-	if (m_Socket)
+	if (_Socket)
 	{
-		m_Socket->CloseSocket();
-		forceExit = true;
+		_Socket->CloseSocket();
+		_forceExit = true;
 	}
 }
 
@@ -166,46 +173,20 @@ void WorldSession::Handle_NULL(WorldPacket& recvPacket)
 		, GetOpcodeNameForLogging(recvPacket.GetOpcode()).c_str()/*, GetPlayerInfo().c_str()*/);
 }
 
+void WorldSession::SendLoginError(uint8 code)
+{
+	WorldPacket packet(CMSG_PLAYER_LOGIN, 4);
+	packet << uint32(0);
+	packet << uint32(0);
+	packet << uint32(code);
 
+	SendPacket(&packet);
+}
 
+void WorldSession::HandlePlayerLogin(WorldPacket& recvPacket)
+{
+	uint32 roomid, SameRoom;
+	PlayerInfo pInfo;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	recvPacket >> roomid >> SameRoom;
+}
