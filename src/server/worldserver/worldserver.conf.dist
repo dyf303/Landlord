@@ -122,3 +122,31 @@ Logger.server=3,Console Server
 
 Appender.Console=1,3,0
 Appender.Server=2,2,0,Server.log,w
+
+#
+#    RoomNumbers
+#        Description: Numbers of the room
+#        Default:     6
+
+RoomNumbers = 6
+
+#
+#    RoomBasicScore
+#        Description: basic score when player win.increasing by room.
+#        Default:     5000
+
+RoomBasicScore = 5000
+
+#
+#    RoomUpdateInterval
+#        Description: Time (milliseconds) for room update interval.
+#        Default:     100 - (0.1 second)
+
+RoomUpdateInterval = 100
+
+#
+#    RoomUpdate.Threads
+#        Description: Number of threads to update rooms.
+#        Default:     1
+
+RoomUpdate.Threads = 1

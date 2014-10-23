@@ -1,5 +1,6 @@
 #include "Room.h"
-Room::Room()
+
+Room::Room(uint32 id, uint32 basic_score) :_id(id), _basic_score(basic_score)
 {
 }
 

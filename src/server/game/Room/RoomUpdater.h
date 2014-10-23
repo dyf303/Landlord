@@ -35,7 +35,7 @@ class RoomUpdater
 		RoomUpdater() : _cancelationToken(false), pending_requests(0) {}
 		~RoomUpdater() { };
 
-        friend class MapUpdateRequest;
+		friend class RoomUpdateRequest;
 
         void schedule_update(Room& map, uint32 diff);
 
@@ -49,7 +49,7 @@ class RoomUpdater
 
     private:
 
-        ProducerConsumerQueue<MapUpdateRequest*> _queue;
+        ProducerConsumerQueue<RoomUpdateRequest*> _queue;
 
         std::vector<std::thread> _workerThreads;
         std::atomic<bool> _cancelationToken;

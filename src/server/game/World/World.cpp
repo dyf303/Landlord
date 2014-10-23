@@ -94,6 +94,12 @@ void World::LoadConfigSettings(bool reload)
 	}
 	else
 		m_int_configs[CONFIG_PORT_WORLD] = sConfigMgr->GetIntDefault("WorldServerPort", 8085);
+
+	m_int_configs[CONFIG_INTERVAL_ROOMUPDATE] = sConfigMgr->GetIntDefault("RoomUpdateInterval", 100);
+	m_int_configs[CONFIG_NUMTHREADS] = sConfigMgr->GetIntDefault("RoomUpdate.Threads", 1);
+	m_int_configs[CONFIG_NUMBERROOMS] = sConfigMgr->GetIntDefault("RoomNumbers", 6);
+	m_int_configs[CONFIG_BASICSCORE] = sConfigMgr->GetIntDefault("RoomBasicScore", 5000);
+
 }
 
 /// Update the World !

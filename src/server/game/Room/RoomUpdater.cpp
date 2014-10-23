@@ -104,7 +104,7 @@ void RoomUpdater::WorkerThread()
 {
     while (1)
     {
-        MapUpdateRequest* request = nullptr;
+        RoomUpdateRequest* request = nullptr;
 
         _queue.WaitAndPop(request);
 
