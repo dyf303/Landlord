@@ -150,3 +150,19 @@ RoomUpdateInterval = 100
 #        Default:     1
 
 RoomUpdate.Threads = 1
+
+#
+#    SocketTimeOutTime
+#        Description: the time(in milliseconds) that close connection when player loss conneting
+#                     
+#        Default:     30000 - (30 second)
+
+SocketTimeOutTime = 30000
+
+#
+#    waitTime
+#        Description:  Time(in milliseconds) that wait other player
+#                     
+#        Default:     4000 - (4 second)
+
+waitTime = 4000

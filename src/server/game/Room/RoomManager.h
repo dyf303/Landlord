@@ -6,6 +6,7 @@
 #include "Room.h"
 #include "RoomUpdater.h"
 
+class Player;
 class Transport;
 struct TransportCreatureProto;
 
@@ -22,13 +23,13 @@ class RoomManager
 		void InitRooms();
         void Update(uint32);
 
-		uint32 GetNumPlayersInInstances();
-
+		uint32 GetNumPlayers();
+		Player * getPlayer(uint32 id);
+		void AddPlayer(uint32 roomid,Player * player);
         void UnloadAll();
 
     private:
         typedef std::unordered_map<uint32, Room*> RoomMapType;
-        typedef std::vector<bool> InstanceIds;
 
 		RoomManager();
 		~RoomManager();

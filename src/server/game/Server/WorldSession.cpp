@@ -26,6 +26,7 @@
 #include "Log.h"
 #include "Opcodes.h"
 #include "Player.h"
+#include "RoomManager.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include "World.h"
@@ -35,7 +36,6 @@ WorldSession::WorldSession(uint32 id, std::shared_ptr<WorldSocket> sock):
     _Socket(sock),
     _accountId(id),
 	_player(nullptr),
-	_expireTime(60000), // 1 min after socket loss, session is deleted
 	_forceExit(false)
 {
     if (sock)
@@ -144,27 +144,13 @@ bool WorldSession::Update(uint32 diff)
         ///- Cleanup socket pointer if need
         if (_Socket && !_Socket->IsOpen())
         {
-            _expireTime -= _expireTime > diff ? diff : _expireTime;
-            if (_expireTime < diff || _forceExit /*|| !GetPlayer()*/)
-            {
-                _Socket = nullptr;
-            }
+             _Socket = nullptr;
         }
 
         if (!_Socket)
             return false;                                   
   
     return true;
-}
-
-/// Kick a player out of the World
-void WorldSession::KickPlayer()
-{
-	if (_Socket)
-	{
-		_Socket->CloseSocket();
-		_forceExit = true;
-	}
 }
 
 void WorldSession::Handle_NULL(WorldPacket& recvPacket)
@@ -189,4 +175,21 @@ void WorldSession::HandlePlayerLogin(WorldPacket& recvPacket)
 	PlayerInfo pInfo;
 
 	recvPacket >> roomid >> SameRoom;
+	recvPacket.read((uint8 *)&pInfo, sizeof(PlayerInfo));
+	if (sRoomMgr->getPlayer(pInfo.id))
+	{
+
+	}
+	else
+	{
+		_player = new Player(this);
+		_player->loadData(pInfo);
+		sRoomMgr->AddPlayer(roomid, _player);
+
+		WorldPacket packet(CMSG_PLAYER_LOGIN,12);
+
+		packet << uint32(0) << uint32(0) << uint32(1);
+
+		SendPacket(&packet);
+	}
 }

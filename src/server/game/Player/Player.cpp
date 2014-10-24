@@ -2,6 +2,7 @@
 
 #include "Log.h"
 #include "WorldSession.h"
+#include "World.h"
 
 Player::Player(WorldSession* session) :_id(0), _icon_id(0), _sex(0), _gold(0), _level(0), _score(0), _all_Chess(0), _win_chess(0),
 _win_Rate(0), _offline_count(0), _start(0), _type(0), _desk_id(0)
@@ -17,9 +18,32 @@ _win_Rate(0), _offline_count(0), _start(0), _type(0), _desk_id(0)
 		_nick_name[i] = 0;
 	}
 	_session = session;
+	_expiration = std::chrono::system_clock::now() + std::chrono::milliseconds(sWorld->getIntConfig(CONFIG_WAIT_TIME));
 }
 
 Player::~Player()
 {
+
+}
+
+void Player::loadData(PlayerInfo &pInfo)
+{
+	_id            = pInfo.id;
+	_icon_id       = pInfo.icon_id;
+	_sex           = pInfo.sex;
+	_gold          = pInfo.gold;
+	_level         = pInfo.level;
+	_score         = pInfo.score;
+	_all_Chess     = pInfo.all_Chess;
+	_win_chess     = pInfo.win_chess;
+	_win_Rate      = pInfo.win_Rate;
+	_offline_count = pInfo.offline_count;
+	_start         = pInfo.start;
+	_type          = pInfo.type;
+	_desk_id       = pInfo.desk_id;
+	memcpy(_props_count, pInfo.props_count, sizeof(_props_count));
+	memcpy(_account, pInfo.account, sizeof(_account));
+	memcpy(_name, pInfo.name, sizeof(_name));
+	memcpy(_nick_name, pInfo.nick_name, sizeof(_nick_name));
 
 }

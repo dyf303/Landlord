@@ -47,7 +47,6 @@ class WorldSession
 
 		void QueuePacket(WorldPacket* new_packet);
         void SendPacket(WorldPacket* packet);
-		void KickPlayer();
 
 		bool Update(uint32 diffr);
 
@@ -86,7 +85,6 @@ class WorldSession
         WorldSession(WorldSession const& right) = delete;
         WorldSession& operator=(WorldSession const& right) = delete;
 
-		uint32 _expireTime;
 		bool _forceExit;
 };
 #endif

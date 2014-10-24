@@ -23,6 +23,7 @@ enum WorldIntConfigs
 	CONFIG_NUMTHREADS,
 	CONFIG_NUMBERROOMS,
 	CONFIG_BASICSCORE,
+	CONFIG_WAIT_TIME,
 	INT_CONFIG_VALUE_COUNT
 };
 
@@ -60,8 +61,6 @@ public:
 	void Update(uint32 diff);
 
 	void UpdateSessions(uint32 diff);
-
-	void KickAll();
 
 	/// Get a server configuration element (see #WorldConfigs)
 	uint32 getIntConfig(WorldIntConfigs index) const

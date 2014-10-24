@@ -73,7 +73,7 @@ void RoomManager::UnloadAll()
 
 }
 
-uint32 RoomManager::GetNumPlayersInInstances()
+uint32 RoomManager::GetNumPlayers()
 {
 	std::lock_guard<std::mutex> lock(_roomsLock);
 
@@ -84,4 +84,16 @@ uint32 RoomManager::GetNumPlayersInInstances()
      ///  ??????????????????????????????
     }
     return ret;
+}
+
+Player* RoomManager::getPlayer(uint32 id)
+{
+	return nullptr;
+}
+
+void RoomManager::AddPlayer(uint32 roomid, Player * player)
+{
+	RoomMapType::iterator itr = _roomMap.find(roomid);
+
+	itr->second->AddPlayer(player);
 }

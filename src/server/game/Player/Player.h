@@ -56,8 +56,14 @@ class Player
 public:
 	explicit Player(WorldSession* session);
 	~Player();
+
+	void loadData(PlayerInfo &pInfo);
+	uint32 getid(){ return _id; }
+	void Update(const uint32 diff){ _expiration -= diff; }
+	bool expiration(){ return  _expiration < 0; }
 private:
 	WorldSession* _session;
+	uint32 _expiration;
 	///// player data
 	uint32 							  _id;				            /// 用户Id
 	uint32                            _icon_id;                     /// 用户头像id

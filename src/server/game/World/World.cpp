@@ -95,10 +95,13 @@ void World::LoadConfigSettings(bool reload)
 	else
 		m_int_configs[CONFIG_PORT_WORLD] = sConfigMgr->GetIntDefault("WorldServerPort", 8085);
 
+	m_int_configs[CONFIG_SOCKET_TIMEOUTTIME] = sConfigMgr->GetIntDefault("SocketTimeOutTime", 30000);
 	m_int_configs[CONFIG_INTERVAL_ROOMUPDATE] = sConfigMgr->GetIntDefault("RoomUpdateInterval", 100);
 	m_int_configs[CONFIG_NUMTHREADS] = sConfigMgr->GetIntDefault("RoomUpdate.Threads", 1);
 	m_int_configs[CONFIG_NUMBERROOMS] = sConfigMgr->GetIntDefault("RoomNumbers", 6);
 	m_int_configs[CONFIG_BASICSCORE] = sConfigMgr->GetIntDefault("RoomBasicScore", 5000);
+	m_int_configs[CONFIG_WAIT_TIME] = sConfigMgr->GetIntDefault("waitTime", 4000);
+	
 
 }
 
@@ -130,12 +133,4 @@ void World::UpdateSessions(uint32 diff)
 			delete pSession;
 		}
 	}
-}
-
-/// Kick (and save) all players
-void World::KickAll()
-{
-	// session not removed at kick and will removed in next update tick
-	for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
-		itr->second->KickPlayer();
 }
