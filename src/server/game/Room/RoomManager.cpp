@@ -95,5 +95,5 @@ void RoomManager::AddPlayer(uint32 roomid, Player * player)
 {
 	RoomMapType::iterator itr = _roomMap.find(roomid);
 
-	itr->second->AddPlayer(player);
+	itr->second->AddPlayer(player->getid(),player);
 }
