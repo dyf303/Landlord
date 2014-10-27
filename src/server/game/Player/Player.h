@@ -59,13 +59,20 @@ public:
 
 	void loadData(PlayerInfo &pInfo);
 	uint32 getid(){ return _id; }
-	void Update(const uint32 diff){ _expiration -= diff; }
+	void Update(const uint32 diff);
 	bool expiration(){ return  _expiration < 0; }
 	void addPlayer(Player *player);
+	bool LogOut(){ return false; }
+	bool idle(){ return false; }
+	bool started(){ return true; }
+	void dealCards(uint8 * cards, uint8 * baseCards);
+	bool endGame(){ return false; };
 
 private:
 	WorldSession* _session;
 	uint32 _expiration;
+	uint8 _cards[17];
+	uint8 _baseCards[3];
 
 	Player *left, *right;
 	///// player data

@@ -14,16 +14,28 @@ public:
 	void Update(const uint32 diff);
 
 	void AddPlayer(uint32 id,Player *player);
-private:
-	void UpdateOne(uint32 diff);
-	void UpdateTwo(uint32 diff);
 
-	typedef std::unordered_map<uint32, Player*> PlayerMapType;	
+	typedef std::unordered_map<uint32, Player*> PlayerMapType;
 	typedef std::list<Player *> onePlayerList;
 	typedef std::pair<Player*, Player*> twoPlayer;
 	typedef std::list<twoPlayer> twoPlayerList;
 	typedef std::pair<Player*, twoPlayer> threePlayer;
 	typedef std::list<threePlayer> threePlayerList;
+private:
+	void UpdateOne(uint32 diff);
+	Player * getPlayerFromOne();
+
+	void UpdateTwo(uint32 diff);
+	bool  LogoutTwo(twoPlayer &twoP);
+
+	void UpdateThree(uint32 diff);
+	bool LogoutThree(threePlayer &threeP);
+	bool allStart(threePlayer &threeP);
+	bool endGame(threePlayer &threeP);
+
+	void dealCards(threePlayer &threeP);
+	void shuffleCard(uint8* Cards);
+
 
 	PlayerMapType _playerMap;
 	onePlayerList _OnePlayerList;

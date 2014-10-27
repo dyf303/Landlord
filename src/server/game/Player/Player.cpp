@@ -26,6 +26,11 @@ Player::~Player()
 
 }
 
+void Player::Update(uint32 diff)
+{
+	_expiration -= diff;
+}
+
 void Player::loadData(PlayerInfo &pInfo)
 {
 	_id            = pInfo.id;
@@ -55,4 +60,12 @@ void Player::addPlayer(Player *player)
 		left = player;
 	else
 		right = player;
+
+	_expiration = sWorld->getIntConfig(CONFIG_WAIT_TIME);
+}
+
+void Player::dealCards(uint8 * cards, uint8 * baseCards)
+{
+	memcpy(_cards, cards, sizeof(_cards));
+	memcpy(_baseCards, baseCards, sizeof(_baseCards));
 }
