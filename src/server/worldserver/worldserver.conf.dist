@@ -166,3 +166,26 @@ SocketTimeOutTime = 30000
 #        Default:     4000 - (4 second)
 
 waitTime = 4000
+
+#
+#    aiPlayerCount
+#        Description:  ai player count 
+#                     
+#        Default:     30 
+
+aiPlayerCount = 30
+
+#
+#    roomGold
+#        Description:  The minimum gold that enter the room
+#                     
+#        Default:     1000 
+
+room1.Gold = 1000
+room2.Gold = 7000
+room3.Gold = 12000
+room4.Gold = 30000
+room5.Gold = 90000
+room6.Gold = 300000
+
+

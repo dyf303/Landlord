@@ -101,6 +101,13 @@ void World::LoadConfigSettings(bool reload)
 	m_int_configs[CONFIG_NUMBERROOMS] = sConfigMgr->GetIntDefault("RoomNumbers", 6);
 	m_int_configs[CONFIG_BASICSCORE] = sConfigMgr->GetIntDefault("RoomBasicScore", 5000);
 	m_int_configs[CONFIG_WAIT_TIME] = sConfigMgr->GetIntDefault("waitTime", 4000);
+	m_int_configs[CONFIG_AI_PLAYER_COUNT] = sConfigMgr->GetIntDefault("aiPlayerCount", 10);
+	m_int_configs[CONFIG_ROOM1_GOLD] = sConfigMgr->GetIntDefault("room1.Gold", 1000);
+	m_int_configs[CONFIG_ROOM2_GOLD] = sConfigMgr->GetIntDefault("room2.Gold", 7000);
+	m_int_configs[CONFIG_ROOM3_GOLD] = sConfigMgr->GetIntDefault("room3.Gold", 12000);
+	m_int_configs[CONFIG_ROOM4_GOLD] = sConfigMgr->GetIntDefault("room4.Gold", 30000);
+	m_int_configs[CONFIG_ROOM5_GOLD] = sConfigMgr->GetIntDefault("room5.Gold", 90000);
+	m_int_configs[CONFIG_ROOM6_GOLD] = sConfigMgr->GetIntDefault("room6.Gold", 300000);
 	
 
 }

@@ -99,7 +99,7 @@ void WorldUpdateLoop()
 		if (diff <= WORLD_SLEEP_CONST + prevSleepTime)
 		{
 			prevSleepTime = WORLD_SLEEP_CONST + prevSleepTime - diff;
-
+		
 			std::this_thread::sleep_for(std::chrono::milliseconds(prevSleepTime));
 		}
 		else

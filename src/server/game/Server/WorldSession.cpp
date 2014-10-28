@@ -184,6 +184,7 @@ void WorldSession::HandlePlayerLogin(WorldPacket& recvPacket)
 	{
 		_player = new Player(this);
 		_player->loadData(pInfo);
+		_player->setRoomId(roomid);
 		sRoomMgr->AddPlayer(roomid, _player);
 
 		WorldPacket packet(CMSG_PLAYER_LOGIN,12);

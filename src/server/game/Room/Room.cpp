@@ -1,10 +1,10 @@
 #include "Room.h"
 
+#include "AiPlayerPool.h"
 #include "Player.h"
 
 #include <utility>
 
-typedef std::pair<Player*, Player*> twoPlayer;
 
 Room::Room(uint32 id, uint32 basic_score) :_id(id), _basic_score(basic_score)
 {
@@ -30,6 +30,7 @@ void Room::Update(const uint32 diff)
 	}
 	UpdateOne(diff);
 	UpdateTwo(diff);
+	UpdateThree(diff);
 }
 
 void Room::UpdateOne(uint32 diff)
@@ -47,9 +48,9 @@ void Room::UpdateOne(uint32 diff)
 				continue;
 			}
 
-			p0->addPlayer(p1); p0->addPlayer(p2);
-			p1->addPlayer(p0); p1->addPlayer(p2);
-			p2->addPlayer(p0); p2->addPlayer(p1);
+			p0->addPlayer(p1); 
+			p1->addPlayer(p2); 
+			p2->addPlayer(p0); 
 
 			_threePlayerList.push_back(std::make_pair(p0, std::make_pair(p1, p2)));
 		}
@@ -74,7 +75,11 @@ void Room::UpdateOne(uint32 diff)
 			/// add a ai player
 			if (p0 != nullptr && p0->expiration())
 			{
+				Player * p1 = sAiPlayerPool->getAiPlayer(p0->getRoomId());
 
+				p0->addPlayer(p1);
+				p1->addPlayer(p0);
+				_twoPlayerList.push_back(std::make_pair(p0, p1));
 			}
 
 		}
@@ -110,6 +115,15 @@ void Room::UpdateTwo(uint32 diff)
 		if (itr->first->expiration() || itr->second->expiration())
 		{
 			/// add ai player
+			Player * p0 = itr->first;
+			Player * p1 = itr->second;
+			Player * p2 = sAiPlayerPool->getAiPlayer(itr->first->getRoomId());
+
+			p0->addPlayer(p2); 
+			p1->addPlayer(p2);
+			p2->addPlayer(p0); p2->addPlayer(p1);
+
+			_threePlayerList.push_back(std::make_pair(p2, *itr));
 		}
 	}
 }

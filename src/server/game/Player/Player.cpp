@@ -5,7 +5,7 @@
 #include "World.h"
 
 Player::Player(WorldSession* session) :_id(0), _icon_id(0), _sex(0), _gold(0), _level(0), _score(0), _all_Chess(0), _win_chess(0),
-_win_Rate(0), _offline_count(0), _start(0), _type(0), _desk_id(0), left(nullptr), right(nullptr)
+_win_Rate(0), _offline_count(0), _start(0), _type(0), _desk_id(0), _left(nullptr), _right(nullptr)
 {
 	for (uint8 i = 0; i < PROPS_COUNT; ++i)
 	{
@@ -29,6 +29,10 @@ Player::~Player()
 void Player::Update(uint32 diff)
 {
 	_expiration -= diff;
+	if (_left->LogOut())
+		_left = nullptr;
+	if (_right->LogOut())
+		_right = nullptr;
 }
 
 void Player::loadData(PlayerInfo &pInfo)
@@ -56,11 +60,20 @@ void Player::loadData(PlayerInfo &pInfo)
 void Player::addPlayer(Player *player)
 {
 	ASSERT(player != nullptr);
-	if (left == nullptr)
-		left = player;
-	else
-		right = player;
 
+	if (player == _left || player == _right)
+		return;
+    
+	if (_right == nullptr)
+	{
+		_right = player;
+		player->setLeftPlayer(this);
+	}
+	else if (_left == nullptr)
+	{
+		_left = player;
+		player->setRightPlayer(this);
+	}
 	_expiration = sWorld->getIntConfig(CONFIG_WAIT_TIME);
 }
 

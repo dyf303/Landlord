@@ -62,19 +62,23 @@ public:
 	void Update(const uint32 diff);
 	bool expiration(){ return  _expiration < 0; }
 	void addPlayer(Player *player);
+	void setLeftPlayer(Player * left){  _left = left; }
+	void setRightPlayer(Player * right){ _right = right; }
 	bool LogOut(){ return false; }
 	bool idle(){ return false; }
 	bool started(){ return true; }
 	void dealCards(uint8 * cards, uint8 * baseCards);
 	bool endGame(){ return false; };
+	void setRoomId(uint32 roomid){ _roomid = roomid; }
+	uint32 getRoomId(){ return _roomid; }
 
 private:
 	WorldSession* _session;
 	uint32 _expiration;
 	uint8 _cards[17];
 	uint8 _baseCards[3];
-
-	Player *left, *right;
+	uint32 _roomid;
+	Player *_left, *_right;
 	///// player data
 	uint32 							  _id;				            /// 用户Id
 	uint32                            _icon_id;                     /// 用户头像id
