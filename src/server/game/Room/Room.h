@@ -13,13 +13,13 @@ public:
 	uint32 getRoomId(){ return _id; };
 	void Update(const uint32 diff);
 
-	void AddPlayer(uint32 id,Player *player);
+	void AddPlayer(uint32 id,Player *player,bool inOne = true);
 
 	typedef std::unordered_map<uint32, Player*> PlayerMapType;
 	typedef std::list<Player *> onePlayerList;
 	typedef std::pair<Player*, Player*> twoPlayer;
 	typedef std::list<twoPlayer> twoPlayerList;
-	typedef std::pair<Player*, twoPlayer> threePlayer;
+	typedef std::pair<twoPlayer, Player*> threePlayer;
 	typedef std::list<threePlayer> threePlayerList;
 private:
 	void UpdateOne(uint32 diff);
@@ -31,6 +31,7 @@ private:
 	void UpdateThree(uint32 diff);
 	bool LogoutThree(threePlayer &threeP);
 	bool allStart(threePlayer &threeP);
+	bool allAtThree(threePlayer &threeP);
 	bool endGame(threePlayer &threeP);
 
 	void dealCards(threePlayer &threeP);

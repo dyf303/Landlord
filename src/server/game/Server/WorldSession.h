@@ -43,7 +43,8 @@ class WorldSession
         WorldSession(uint32 id, std::shared_ptr<WorldSocket> sock);
         ~WorldSession();
 
-		uint32 GetAccountId() const { return _accountId; }
+		uint32 getAccountId() const { return _accountId; }
+		Player * getPlayer() { return _player; }
 
 		void QueuePacket(WorldPacket* new_packet);
         void SendPacket(WorldPacket* packet);
@@ -69,6 +70,7 @@ class WorldSession
     public:                                                 // opcodes handlers
 		void Handle_NULL(WorldPacket& recvPacket);          // not used
 		void HandlePlayerLogin(WorldPacket& recvPacket);
+		void HandleWaitStart(WorldPacket& recvPacket);
 
     friend class World;
  

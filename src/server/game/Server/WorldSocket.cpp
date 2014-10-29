@@ -101,7 +101,8 @@ void WorldSocket::AsyncWrite(WorldPacket& packet)
   //  TC_LOG_TRACE("network.opcode", "S->C: %s %s", (_worldSession ? _worldSession->GetPlayerInfo() : GetRemoteIpAddress().to_string()).c_str(), GetOpcodeNameForLogging(packet.GetOpcode()).c_str());
 
 	uint32 Opcode = packet.GetOpcode();
-	ServerPktHeader header(packet.size() + sizeof(Opcode), Opcode);
+	/// fix my stupid client,sizeof(Opcode) * 2
+	ServerPktHeader header(packet.size() + sizeof(Opcode) * 2, Opcode);
 
     std::lock_guard<std::mutex> guard(_writeLock);
 

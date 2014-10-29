@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	TC_LOG_TRACE("network.opcode", "C->S: ");
 
 	boost::asio::signal_set signals(_ioService, SIGINT, SIGTERM);
 #if PLATFORM == PLATFORM_WINDOWS

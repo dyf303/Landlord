@@ -1,5 +1,7 @@
 #include "World.h"
+
 #include "Configuration/Config.h"
+#include "RoomManager.h"
 #include "WorldSession.h"
 
 
@@ -46,14 +48,14 @@ void World::AddSession_(WorldSession* s)
 {
 	ASSERT(s);
 
-	if (RemoveSession(s->GetAccountId()))
+	if (RemoveSession(s->getAccountId()))
 	{
 		//s->KickPlayer();
 		delete s;                                   
 		return;
 	}
 
-	m_sessions[s->GetAccountId()] = s;
+	m_sessions[s->getAccountId()] = s;
 }
 
 /// Initialize the World
@@ -67,6 +69,10 @@ void World::SetInitialWorldSettings()
 
 	///- Initialize config settings
 	LoadConfigSettings();
+
+	///- Initialize RoomManager
+	TC_LOG_INFO("server.loading", "Starting Room System");
+	sRoomMgr->Initialize();
 
 	uint32 startupDuration = GetMSTimeDiffToNow(startupBegin);
 
@@ -116,6 +122,7 @@ void World::LoadConfigSettings(bool reload)
 void World::Update(uint32 diff)
 {
 	UpdateSessions(diff);
+	sRoomMgr->Update(diff);
 }
 
 void World::UpdateSessions(uint32 diff)

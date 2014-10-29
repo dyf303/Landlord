@@ -32,11 +32,11 @@ struct ServerPktHeader
     {
         uint8 headerIndex=0;
 
-		header[headerIndex++] = 0xFF & size;
-		header[headerIndex++] = 0xFF & (size >> 16);
+		header[headerIndex++] = 0xFFFF & size;
+		header[headerIndex++] = 0xFFFF & (size >> 16);
 
-        header[headerIndex++] = 0xFF & cmd;
-        header[headerIndex++] = 0xFF & (cmd >> 16);
+        header[headerIndex++] = 0xFFFF & cmd;
+        header[headerIndex++] = 0xFFFF & (cmd >> 16);
     }
 
     uint8 getHeaderLength()

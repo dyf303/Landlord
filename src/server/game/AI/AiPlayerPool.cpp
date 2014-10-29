@@ -52,10 +52,12 @@ void AiPlayerPool::configureAiPlayer(Player * player, uint32 roomid)
 	aiPlayerInfo.all_Chess = roomid * 100 + 80;
 	aiPlayerInfo.win_chess = aiPlayerInfo.all_Chess * 0.4;
 	aiPlayerInfo.win_Rate = 0.4;
-	sprintf_s((char *)aiPlayerInfo.account, 12,"%d", aiPlayerInfo.id + 524288);
+	sprintf_s(aiPlayerInfo.account, 12,"%d", aiPlayerInfo.id + 524288);
 	memcpy(aiPlayerInfo.nick_name, "天天向上",8);
 
 	player->loadData(aiPlayerInfo);
+	player->setPlayerType(PLAYER_TYPE_AI);
+	player->setStart();
 
 }
 

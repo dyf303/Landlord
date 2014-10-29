@@ -171,10 +171,10 @@ void WorldSession::SendLoginError(uint8 code)
 
 void WorldSession::HandlePlayerLogin(WorldPacket& recvPacket)
 {
-	uint32 roomid, SameRoom;
+	uint32 spaceid,roomid, SameRoom;
 	PlayerInfo pInfo;
 
-	recvPacket >> roomid >> SameRoom;
+	recvPacket >>spaceid>> roomid >> SameRoom;
 	recvPacket.read((uint8 *)&pInfo, sizeof(PlayerInfo));
 	if (sRoomMgr->getPlayer(pInfo.id))
 	{
@@ -187,10 +187,17 @@ void WorldSession::HandlePlayerLogin(WorldPacket& recvPacket)
 		_player->setRoomId(roomid);
 		sRoomMgr->AddPlayer(roomid, _player);
 
-		WorldPacket packet(CMSG_PLAYER_LOGIN,12);
+		WorldPacket packet(CMSG_PLAYER_LOGIN,600);
 
 		packet << uint32(0) << uint32(0) << uint32(1);
 
+		packet.resize(600);
+
 		SendPacket(&packet);
 	}
+}
+
+void WorldSession::HandleWaitStart(WorldPacket& recvPacket)
+{
+	getPlayer()->setStart();
 }

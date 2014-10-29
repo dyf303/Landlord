@@ -8,7 +8,7 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
 	/*0x00*/{ "CMSG_PLAYER_LOGIN",               &WorldSession::HandlePlayerLogin },
 	/*0x01*/{ "SMSG_DESK_TWO",                   &WorldSession::Handle_NULL },
 	/*0x02*/{ "SMSG_DESK_THREE",                 &WorldSession::Handle_NULL },
-	/*0x03*/{ "CMSG_WAIT_START",                 &WorldSession::Handle_NULL },
+	/*0x03*/{ "CMSG_WAIT_START",                 &WorldSession::HandleWaitStart },
 	/*0x04*/{ "SMSG_CARD_DEAL",                  &WorldSession::Handle_NULL },
 	/*0x05*/{ "CMSG_GRAD_LANDLORD",              &WorldSession::Handle_NULL },
 	/*0x06*/{ "CMSG_DOUBLE_SCORE",               &WorldSession::Handle_NULL },

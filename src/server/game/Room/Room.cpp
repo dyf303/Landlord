@@ -2,7 +2,6 @@
 
 #include "AiPlayerPool.h"
 #include "Player.h"
-
 #include <utility>
 
 
@@ -52,7 +51,7 @@ void Room::UpdateOne(uint32 diff)
 			p1->addPlayer(p2); 
 			p2->addPlayer(p0); 
 
-			_threePlayerList.push_back(std::make_pair(p0, std::make_pair(p1, p2)));
+			_threePlayerList.push_back(std::make_pair(std::make_pair(p0, p1),p2));
 		}
 		else if (number == 2)
 		{
@@ -72,14 +71,23 @@ void Room::UpdateOne(uint32 diff)
 		{
 			Player * p0 = getPlayerFromOne();
 
+			if (p0 == nullptr)
+				break;
 			/// add a ai player
-			if (p0 != nullptr && p0->expiration())
+			if (p0->expiration())
 			{
 				Player * p1 = sAiPlayerPool->getAiPlayer(p0->getRoomId());
 
 				p0->addPlayer(p1);
 				p1->addPlayer(p0);
 				_twoPlayerList.push_back(std::make_pair(p0, p1));
+				AddPlayer(p1->getid(), p1, false);
+
+			}
+			else
+			{
+				_OnePlayerList.push_back(p0);
+				break;
 			}
 
 		}
@@ -121,9 +129,9 @@ void Room::UpdateTwo(uint32 diff)
 
 			p0->addPlayer(p2); 
 			p1->addPlayer(p2);
-			p2->addPlayer(p0); p2->addPlayer(p1);
 
-			_threePlayerList.push_back(std::make_pair(p2, *itr));
+			_threePlayerList.push_back(std::make_pair(*itr, p2));
+			AddPlayer(p2->getid(), p2, false);
 		}
 	}
 }
@@ -160,7 +168,7 @@ void Room::UpdateThree(uint32 diff)
 	threePlayerList::iterator itr = _threePlayerList.begin();
 	for (; itr != _threePlayerList.end(); ++itr)
 	{
-		if (!LogoutThree(*itr) && allStart(*itr))
+		if (!LogoutThree(*itr) && allStart(*itr) && allAtThree(*itr))
 		{
 			dealCards(*itr);
 		}
@@ -174,9 +182,9 @@ void Room::UpdateThree(uint32 diff)
 bool Room::LogoutThree(threePlayer &threeP)
 {
 	bool logout = true;
-	Player *p0 = threeP.first;
-	Player *p1 = threeP.second.first;
-	Player *p2 = threeP.second.second;
+	Player *p0 = threeP.first.first;
+	Player *p1 = threeP.first.second;
+	Player *p2 = threeP.second;
 	bool  logout0 = p0->LogOut();
 	bool  logout1 = p1->LogOut();
 	bool  logout2 = p2->LogOut();
@@ -208,18 +216,30 @@ bool Room::LogoutThree(threePlayer &threeP)
 bool Room::allStart(threePlayer &threeP)
 {
 	bool allstart = true;
-	Player *p0 = threeP.first;
-	Player *p1 = threeP.second.first;
-	Player *p2 = threeP.second.second;
+	Player *p0 = threeP.first.first;
+	Player *p1 = threeP.first.second;
+	Player *p2 = threeP.second;
 
 	return p0->started() && p1->started() && p2->started();
 }
 
+///synchronous player.sendThreeDesk
+bool Room::allAtThree(threePlayer &threeP)
+{
+	Player *p0 = threeP.first.first;
+	Player *p1 = threeP.first.second;
+	Player *p2 = threeP.second;
+
+	return p0->getQueueFlags() == QUEUE_FLAGS_THREE 
+		&& p1->getQueueFlags() == QUEUE_FLAGS_THREE 
+		&& p2->getQueueFlags() == QUEUE_FLAGS_THREE;
+}
+
 void Room::dealCards(threePlayer &threeP)
 {
-	Player *p0 = threeP.first;
-	Player *p1 = threeP.second.first;
-	Player *p2 = threeP.second.second;
+	Player *p0 = threeP.first.first;
+	Player *p1 = threeP.first.second;
+	Player *p2 = threeP.second;
 
 	uint8 cards[54];
 	shuffleCard(cards);
@@ -255,9 +275,9 @@ void Room::shuffleCard(uint8* Cards)
 
 bool Room::endGame(threePlayer &threeP)
 {
-	Player *p0 = threeP.first;
-	Player *p1 = threeP.second.first;
-	Player *p2 = threeP.second.second;
+	Player *p0 = threeP.first.first;
+	Player *p1 = threeP.first.second;
+	Player *p2 = threeP.second;
 
 	if (p0->endGame() && p1->endGame() && p2->endGame())
 	{
@@ -266,8 +286,9 @@ bool Room::endGame(threePlayer &threeP)
 	return false;
 }
 
-void Room::AddPlayer(uint32 id,Player *player)
+void Room::AddPlayer(uint32 id, Player *player, bool inOne)
 {
 	_playerMap[id] = player;
-	_OnePlayerList.push_back(player);
+	if (inOne)
+	   _OnePlayerList.push_back(player);
 }

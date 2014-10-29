@@ -4,6 +4,10 @@
 #define PROPS_COUNT      16
 #define NAME_LENGTH      12
 
+#define CARD_TERMINATE   100
+#define CARD_NUMBER      17
+#define BASIC_CARD        7
+
 class WorldSession;
 
 struct PlayerInfo
@@ -36,19 +40,32 @@ struct PlayerInfo
 	uint32							  type;	                       /// 每个人的类型(初始值是1， 0 - landlord, 1 - farmer)
 	uint32					          desk_id;                     /// 桌子标识
 	uint32                            props_count[PROPS_COUNT];    /// 用户道具数目
-	uint8                             account[NAME_LENGTH];        /// 用户账号
-	uint8                             name[NAME_LENGTH];           /// 用户姓名
-	uint8                             nick_name[NAME_LENGTH];      /// 用户昵称
+	char                              account[NAME_LENGTH];        /// 用户账号
+	char                              name[NAME_LENGTH];           /// 用户姓名
+	char                              nick_name[NAME_LENGTH];      /// 用户昵称
 };
 
-enum PlayerGameStatus
+enum GameStatus:uint8
 {
+	GAME_STATUS_WAIT_START      = 0,
+	GAME_STATUS_STARTING        = 1,
+	GAME_STATUS_STARTED         = 2,
+	GAME_STATUS_WAIT_DEAL_CARD  = 3, 
+	GAME_STATUS_DEALED_CARD       = 4
+};
 
+enum PlayerType
+{
+	PLAYER_TYPE_AI,
+	PLAYER_TYPE_USER
 };
 
 enum AtQueueFlags
 {
-
+	QUEUE_FLAGS_NULL,
+	QUEUE_FLAGS_ONE,
+	QUEUE_FLAGS_TWO,
+	QUEUE_FLAGS_THREE
 };
 
 class Player
@@ -57,46 +74,52 @@ public:
 	explicit Player(WorldSession* session);
 	~Player();
 
+	WorldSession* GetSession() const { return _session; }
 	void loadData(PlayerInfo &pInfo);
-	uint32 getid(){ return _id; }
+	uint32 getid(){ return _playerInfo.id; }
 	void Update(const uint32 diff);
+	void checkOutPlayer();
+	void checkQueueStatus();
+	void checkStart();
+	uint32 getDefaultLandlordUserId();
+	void setDefaultLandlordUserId(uint32 id){ _defaultLandlordUserId = id; }
+	void checkDealCards();
+	void sendTwoDesk();
+	void sendThreeDesk();
+	void logOutPlayer(uint32 id);
 	bool expiration(){ return  _expiration < 0; }
 	void addPlayer(Player *player);
 	void setLeftPlayer(Player * left){  _left = left; }
 	void setRightPlayer(Player * right){ _right = right; }
 	bool LogOut(){ return false; }
 	bool idle(){ return false; }
-	bool started(){ return true; }
+	bool started(){ return _playerInfo.start == 1; }
+	void setStart(){ _gameStatus = GAME_STATUS_STARTING; _playerInfo.start = 1; }
 	void dealCards(uint8 * cards, uint8 * baseCards);
 	bool endGame(){ return false; };
 	void setRoomId(uint32 roomid){ _roomid = roomid; }
 	uint32 getRoomId(){ return _roomid; }
+	void setPlayerType(PlayerType type){ _playerType = type; }
+	PlayerType getPlayerType(){ return _playerType; }
+	PlayerInfo * getPlayerInfo(){ return &_playerInfo; };
+	AtQueueFlags getQueueFlags(){ return _queueFlags; }
 
 private:
 	WorldSession* _session;
-	uint32 _expiration;
-	uint8 _cards[17];
-	uint8 _baseCards[3];
+	int32 _expiration;
+	uint8 _cards[CARD_NUMBER];
+	uint8 _baseCards[BASIC_CARD];
 	uint32 _roomid;
 	Player *_left, *_right;
+	AtQueueFlags _queueFlags;
+	PlayerType _playerType;
+	GameStatus _gameStatus;
+	bool _start;
+	uint32 _defaultLandlordUserId;
+private:
 	///// player data
-	uint32 							  _id;				            /// 用户Id
-	uint32                            _icon_id;                     /// 用户头像id
-	uint32                            _sex;                         /// 性别 (0--男，1--女)
-	uint32                            _gold;                        /// 用户拥有金币数
-	uint32                            _level;                       /// 用户等级
-	uint32 							  _score;			            /// 用户积分
-	uint32                            _all_Chess;                   /// 总局数
-	uint32                            _win_chess;                   /// 胜局数
-	uint32                            _win_Rate;                    /// 胜率
-	uint32                            _offline_count;               /// 掉线次数
-	uint32 							  _start;			            /// 标记是否开始
-	uint32							  _type;	                    /// 每个人的类型(初始值是1， 0 - landlord, 1 - farmer)
-	uint32					          _desk_id;                     /// 桌子标识
-	uint32                            _props_count[PROPS_COUNT];    /// 用户道具数目
-	uint8                             _account[NAME_LENGTH];        /// 用户账号
-	uint8                             _name[NAME_LENGTH];           /// 用户姓名
-	uint8                             _nick_name[NAME_LENGTH];      /// 用户昵称
+	PlayerInfo _playerInfo;
+
 };
 
 #endif
