@@ -32,6 +32,7 @@ private:
 	bool LogoutThree(threePlayer &threeP);
 	bool allStart(threePlayer &threeP);
 	bool allAtThree(threePlayer &threeP);
+	bool allWaitDealCards(threePlayer &threeP);
 	bool endGame(threePlayer &threeP);
 
 	void dealCards(threePlayer &threeP);

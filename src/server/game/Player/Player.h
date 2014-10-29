@@ -103,6 +103,7 @@ public:
 	PlayerType getPlayerType(){ return _playerType; }
 	PlayerInfo * getPlayerInfo(){ return &_playerInfo; };
 	AtQueueFlags getQueueFlags(){ return _queueFlags; }
+	GameStatus getGameStatus(){ return _gameStatus; }
 
 private:
 	WorldSession* _session;

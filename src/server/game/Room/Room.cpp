@@ -168,7 +168,7 @@ void Room::UpdateThree(uint32 diff)
 	threePlayerList::iterator itr = _threePlayerList.begin();
 	for (; itr != _threePlayerList.end(); ++itr)
 	{
-		if (!LogoutThree(*itr) && allStart(*itr) && allAtThree(*itr))
+		if (!LogoutThree(*itr) && allStart(*itr) && allAtThree(*itr) && allWaitDealCards(*itr))
 		{
 			dealCards(*itr);
 		}
@@ -235,6 +235,17 @@ bool Room::allAtThree(threePlayer &threeP)
 		&& p2->getQueueFlags() == QUEUE_FLAGS_THREE;
 }
 
+bool Room::allWaitDealCards(threePlayer &threeP)
+{
+	Player *p0 = threeP.first.first;
+	Player *p1 = threeP.first.second;
+	Player *p2 = threeP.second;
+
+	return p0->getGameStatus() < GAME_STATUS_WAIT_DEAL_CARD
+		&& p1->getGameStatus() < GAME_STATUS_WAIT_DEAL_CARD
+		&& p2->getGameStatus() < GAME_STATUS_WAIT_DEAL_CARD;
+}
+
 void Room::dealCards(threePlayer &threeP)
 {
 	Player *p0 = threeP.first.first;
@@ -243,7 +254,7 @@ void Room::dealCards(threePlayer &threeP)
 
 	uint8 cards[54];
 	shuffleCard(cards);
-  
+
 	p0->dealCards(cards, cards + 51);
 	p1->dealCards(cards + 17, cards + 51);
 	p2->dealCards(cards + 34, cards + 51);
@@ -254,10 +265,10 @@ void Room::shuffleCard(uint8* Cards)
 	for (uint32 color = 0; color < 4; color++)
 	for (uint32 card = 0; card < 13; card++)
 	{
-		*++Cards = color << 4 | card;
+		*Cards++ = color << 4 | card;
 	}
-	*++Cards = 61;
-	*++Cards = 62;
+	*Cards++ = 61;
+	*Cards++ = 62;
 
 	uint8 iSwapTmp;
 	Cards -= 54;

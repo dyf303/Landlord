@@ -130,6 +130,9 @@ void Player::checkDealCards()
 
 void Player::sendTwoDesk()
 {
+	if (getPlayerType() != PLAYER_TYPE_USER)
+		return;
+
 	WorldPacket data(SMSG_DESK_TWO, 316);
 
 	data.resize(8);
@@ -150,6 +153,9 @@ void Player::sendTwoDesk()
 
 void Player::sendThreeDesk()
 {
+	if (getPlayerType() != PLAYER_TYPE_USER)
+		return;
+
 	WorldPacket data(SMSG_DESK_THREE, 316);
 
 	data.resize(8);
@@ -189,7 +195,7 @@ void Player::addPlayer(Player *player)
 void Player::dealCards(uint8 * cards, uint8 * baseCards)
 {
 	memcpy(_cards, cards, sizeof(_cards));
-	memcpy(_baseCards, baseCards, sizeof(_baseCards));
+	memcpy(_baseCards, baseCards, 3/*sizeof(_baseCards)*/);
 
 	_gameStatus = GAME_STATUS_WAIT_DEAL_CARD;
 }
