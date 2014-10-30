@@ -164,9 +164,9 @@ int32 Player::getLandlordId()
 	if (_landlordPlayerId != -1)
 		return _landlordPlayerId;
 
-	uint32 leftGrabScore = _left->getGrabLandlordScore();
-	uint32 rightGrabScore = _right->getGrabLandlordScore();
-	uint32 maxScore = std::max(std::max(_grabLandlordScore, leftGrabScore), rightGrabScore);
+	int32 leftGrabScore = _left->getGrabLandlordScore();
+	int32 rightGrabScore = _right->getGrabLandlordScore();
+	int32 maxScore = std::max(std::max(_grabLandlordScore, leftGrabScore), rightGrabScore);
 
 	if ((_grabLandlordScore != -1 && leftGrabScore != -1 && rightGrabScore != -1) || maxScore == 3)
 	{	
@@ -212,6 +212,9 @@ void Player::checkGrabLandlord()
 		data << uint32(this->getid());
 		data << _grabLandlordScore;
 		data << getLandlordId();
+
+		if (getPlayerType() == PLAYER_TYPE_USER)
+			  GetSession()->SendPacket(&data);
 
 		if (_left->getPlayerType() == PLAYER_TYPE_USER)
 			_left->GetSession()->SendPacket(&data);

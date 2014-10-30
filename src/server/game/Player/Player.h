@@ -115,7 +115,7 @@ public:
 	AtQueueFlags getQueueFlags(){ return _queueFlags; }
 	GameStatus getGameStatus(){ return _gameStatus; }
 	void setGameStatus(GameStatus status){ _gameStatus = status; }
-	uint32 getGrabLandlordScore(){ return _grabLandlordScore; }
+	int32 getGrabLandlordScore(){ return _grabLandlordScore; }
 	int32 getLandlordId();
 	uint32 aiGrabLandlord();
 
@@ -132,7 +132,7 @@ private:
 	GameStatus _gameStatus;
 	bool _start;
 	uint32 _defaultGrabLandlordPlayerId;
-	uint32 _grabLandlordScore;
+	int32 _grabLandlordScore;
 	int32 _landlordPlayerId;
 
 private:

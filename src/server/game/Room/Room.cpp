@@ -127,7 +127,10 @@ void Room::UpdateTwo(uint32 diff)
 			/// add ai player
 			Player * p0 = itr->first;
 			Player * p1 = itr->second;
-			Player * p2 = sAiPlayerPool->getAiPlayer(itr->first->getRoomId());
+			Player * p2 = getPlayerFromOne();
+
+			if (p2 == nullptr)
+				p2 = sAiPlayerPool->getAiPlayer(itr->first->getRoomId());
 
 			p0->addPlayer(p2); 
 			p1->addPlayer(p2);
