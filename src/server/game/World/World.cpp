@@ -114,6 +114,7 @@ void World::LoadConfigSettings(bool reload)
 	m_int_configs[CONFIG_ROOM4_GOLD] = sConfigMgr->GetIntDefault("room4.Gold", 30000);
 	m_int_configs[CONFIG_ROOM5_GOLD] = sConfigMgr->GetIntDefault("room5.Gold", 90000);
 	m_int_configs[CONFIG_ROOM6_GOLD] = sConfigMgr->GetIntDefault("room6.Gold", 300000);
+	m_int_configs[CONFIG_AI_DELAY] = sConfigMgr->GetIntDefault("aiDealy", 2000);
 	
 
 }

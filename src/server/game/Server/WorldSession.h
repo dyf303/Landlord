@@ -45,6 +45,8 @@ class WorldSession
 
 		uint32 getAccountId() const { return _accountId; }
 		Player * getPlayer() { return _player; }
+		char const * GetPlayerName() const;
+		std::string GetPlayerInfo() const;
 
 		void QueuePacket(WorldPacket* new_packet);
         void SendPacket(WorldPacket* packet);
@@ -67,11 +69,12 @@ class WorldSession
 			return m_timeOutTime <= 0;
 		}
 		void SendLoginError(uint8 code);
+
     public:                                                 // opcodes handlers
 		void Handle_NULL(WorldPacket& recvPacket);          // not used
 		void HandlePlayerLogin(WorldPacket& recvPacket);
 		void HandleWaitStart(WorldPacket& recvPacket);
-
+		void HandleGrabLandlord(WorldPacket& recvPacket);
     friend class World;
  
 

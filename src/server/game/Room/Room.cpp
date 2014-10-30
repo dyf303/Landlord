@@ -112,9 +112,11 @@ Player * Room::getPlayerFromOne()
 
 void Room::UpdateTwo(uint32 diff)
 {
-	twoPlayerList::iterator itr = _twoPlayerList.begin();
-	for (; itr != _twoPlayerList.end(); ++itr)
+	for (twoPlayerList::iterator itr = _twoPlayerList.begin(),next; itr != _twoPlayerList.end(); itr = next)
 	{
+		next = itr;
+		++next;
+
 		if (LogoutTwo(*itr))
 		{
 			_twoPlayerList.erase(itr);
@@ -131,7 +133,9 @@ void Room::UpdateTwo(uint32 diff)
 			p1->addPlayer(p2);
 
 			_threePlayerList.push_back(std::make_pair(*itr, p2));
+			_twoPlayerList.erase(itr);
 			AddPlayer(p2->getid(), p2, false);
+
 		}
 	}
 }
@@ -235,6 +239,7 @@ bool Room::allAtThree(threePlayer &threeP)
 		&& p2->getQueueFlags() == QUEUE_FLAGS_THREE;
 }
 
+///To prevent repeat deal cards
 bool Room::allWaitDealCards(threePlayer &threeP)
 {
 	Player *p0 = threeP.first.first;

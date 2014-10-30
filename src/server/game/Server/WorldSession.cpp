@@ -31,6 +31,11 @@
 #include "WorldSession.h"
 #include "World.h"
 
+namespace 
+{
+	char const * DefaultPlayerName = "<none>";
+} // namespace
+
 /// WorldSession constructor
 WorldSession::WorldSession(uint32 id, std::shared_ptr<WorldSocket> sock):
     _Socket(sock),
@@ -64,6 +69,21 @@ WorldSession::~WorldSession()
     WorldPacket* packet = NULL;
     while (_recvQueue.next(packet))
         delete packet;
+}
+
+char const * WorldSession::GetPlayerName() const
+{
+	return _player != NULL ? _player->GetName() : DefaultPlayerName;
+}
+
+std::string WorldSession::GetPlayerInfo() const
+{
+	std::ostringstream ss;
+
+	ss << "[Player: " << GetPlayerName();
+	ss<< ", Account: " << getAccountId() << ")]";
+
+	return ss.str();
 }
 
 /// Send a packet to the client
@@ -155,8 +175,8 @@ bool WorldSession::Update(uint32 diff)
 
 void WorldSession::Handle_NULL(WorldPacket& recvPacket)
 {
-	TC_LOG_ERROR("network.opcode", "Received unhandled opcode %s from "
-		, GetOpcodeNameForLogging(recvPacket.GetOpcode()).c_str()/*, GetPlayerInfo().c_str()*/);
+	TC_LOG_ERROR("network.opcode", "Received unhandled opcode %s from %s"
+		, GetOpcodeNameForLogging(recvPacket.GetOpcode()).c_str(), GetPlayerInfo().c_str());
 }
 
 void WorldSession::SendLoginError(uint8 code)
@@ -200,4 +220,11 @@ void WorldSession::HandlePlayerLogin(WorldPacket& recvPacket)
 void WorldSession::HandleWaitStart(WorldPacket& recvPacket)
 {
 	getPlayer()->setStart();
+}
+
+void WorldSession::HandleGrabLandlord(WorldPacket& recvPacket)
+{
+	recvPacket >> getPlayer()->_grabLandlordScore;
+
+	getPlayer()->setGameStatus(GAME_STATUS_GRAB_LAND_LORDING);
 }

@@ -7,7 +7,7 @@
 #define PLAYER(left,right) (left !=nullptr ? left:right)
 
 Player::Player(WorldSession* session) :_roomid(0), _left(nullptr), _right(nullptr), _queueFlags(QUEUE_FLAGS_NULL)
-, _playerType(PLAYER_TYPE_USER), _start(false), _defaultLandlordUserId(0)
+, _playerType(PLAYER_TYPE_USER), _start(false), _defaultGrabLandlordPlayerId(0), _grabLandlordScore(-1), _landlordPlayerId(-1)
 {
 	_session = session;
 
@@ -17,6 +17,7 @@ Player::Player(WorldSession* session) :_roomid(0), _left(nullptr), _right(nullpt
 		_baseCards[i] = CARD_TERMINATE;
 
 	_expiration = sWorld->getIntConfig(CONFIG_WAIT_TIME);
+	_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
 }
 
 Player::~Player()
@@ -27,10 +28,25 @@ Player::~Player()
 void Player::Update(uint32 diff)
 {
 	_expiration -= diff;
+	UpdateAiDelay(diff);
+
 	checkOutPlayer();
 	checkQueueStatus();
 	checkStart();
 	checkDealCards();
+	checkGrabLandlord();
+}
+
+void Player::UpdateAiDelay(const uint32 diff)
+{
+	if (_gameStatus == GAME_STATUS_DEALED_CARD || _gameStatus == GAME_STATUS_WAIT_OUT_CARD)
+	{
+		GameStatus leftPlayerGameStatus = _left->getGameStatus();
+
+		if (leftPlayerGameStatus == GAME_STATUS_GRAB_LAND_LORDED
+			|| leftPlayerGameStatus == GAME_STATUS_OUT_CARDED)
+			_aiDelay -= diff;
+	}
 }
 
 void Player::checkOutPlayer()
@@ -94,20 +110,20 @@ void Player::checkStart()
 
 uint32 Player::getDefaultLandlordUserId()
 {
-	if (_defaultLandlordUserId == 0)
+	if (_defaultGrabLandlordPlayerId == 0)
 	{
 		uint8 iLandlordUserIdx = (rand() % 3);
 		switch (iLandlordUserIdx)
 		{
-		case 0:_defaultLandlordUserId = this->getid(); break;
-		case 1:_defaultLandlordUserId = _left->getid(); break;
-		case 2:_defaultLandlordUserId = _right->getid(); break;
+		case 0:_defaultGrabLandlordPlayerId = this->getid(); break;
+		case 1:_defaultGrabLandlordPlayerId = _left->getid(); break;
+		case 2:_defaultGrabLandlordPlayerId = _right->getid(); break;
 		}
-		_left->setDefaultLandlordUserId(_defaultLandlordUserId);
-		_right->setDefaultLandlordUserId(_defaultLandlordUserId);
+		_left->setDefaultLandlordUserId(_defaultGrabLandlordPlayerId);
+		_right->setDefaultLandlordUserId(_defaultGrabLandlordPlayerId);
 	}
 
-	return _defaultLandlordUserId;
+	return _defaultGrabLandlordPlayerId;
 }
 
 void Player::checkDealCards()
@@ -125,6 +141,99 @@ void Player::checkDealCards()
 			GetSession()->SendPacket(&data);
 		}
 		_gameStatus = GAME_STATUS_DEALED_CARD;
+	}
+}
+
+uint32 Player::aiGrabLandlord()
+{
+	uint32 leftGrabScore = _left->getGrabLandlordScore();
+	uint32 rightGrabScore = _right->getGrabLandlordScore();
+
+	uint32 maxScore = std::max(leftGrabScore, rightGrabScore);
+
+	if (leftGrabScore == -1 && rightGrabScore == -1)
+		return (rand() % 4);
+	else if (maxScore == 0)
+		return 1;
+	else 
+		return 0;
+}
+
+int32 Player::getLandlordId()
+{
+	if (_landlordPlayerId != -1)
+		return _landlordPlayerId;
+
+	uint32 leftGrabScore = _left->getGrabLandlordScore();
+	uint32 rightGrabScore = _right->getGrabLandlordScore();
+	uint32 maxScore = std::max(std::max(_grabLandlordScore, leftGrabScore), rightGrabScore);
+
+	if ((_grabLandlordScore != -1 && leftGrabScore != -1 && rightGrabScore != -1) || maxScore == 3)
+	{	
+		if (maxScore == _grabLandlordScore)
+			_landlordPlayerId = getid();
+		else if (maxScore == leftGrabScore)
+			_landlordPlayerId = _left->getid();
+		else if (maxScore == rightGrabScore)
+			_landlordPlayerId =  _right->getid();
+	}
+	return _landlordPlayerId;
+}
+
+void Player::checkGrabLandlord()
+{
+	if (_gameStatus != GAME_STATUS_DEALED_CARD && _gameStatus != GAME_STATUS_GRAB_LAND_LORDING)
+		return;
+	do 
+	{
+		if (_gameStatus == GAME_STATUS_DEALED_CARD)
+		{
+			if (getLandlordId() != -1)
+			{
+				_gameStatus == GAME_STATUS_WAIT_OUT_CARD;
+				break;
+			}
+
+			if (getPlayerType() == PLAYER_TYPE_AI && (_defaultGrabLandlordPlayerId == getid()
+				|| (_left->getGameStatus() == GAME_STATUS_GRAB_LAND_LORDED && _aiDelay < 0)))
+			{
+				_grabLandlordScore = aiGrabLandlord();
+				_gameStatus = GAME_STATUS_GRAB_LAND_LORDING;
+				_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
+			}
+		}
+	} while (0);
+
+	if (_gameStatus == GAME_STATUS_GRAB_LAND_LORDING)
+	{
+		WorldPacket data(CMSG_GRAD_LANDLORD, 20);
+
+		data.resize(8);
+		data << uint32(this->getid());
+		data << _grabLandlordScore;
+		data << getLandlordId();
+
+		if (_left->getPlayerType() == PLAYER_TYPE_USER)
+			_left->GetSession()->SendPacket(&data);
+
+		if (_right->getPlayerType() == PLAYER_TYPE_USER)
+			_right->GetSession()->SendPacket(&data);
+
+		_gameStatus = GAME_STATUS_GRAB_LAND_LORDED;
+	}
+
+	if (_gameStatus == GAME_STATUS_GRAB_LAND_LORDED)
+	{
+		if (getGrabLandlordScore() == 0 && _left->getGrabLandlordScore() == 0 && _right->getGrabLandlordScore() == 0)
+		{
+			_defaultGrabLandlordPlayerId = 0;
+			_grabLandlordScore = -1;
+			_gameStatus = GAME_STATUS_STARTED;
+		}
+		if (getLandlordId() == getid())
+		{
+			_gameStatus == GAME_STATUS_OUT_CARDING;
+		}
 	}
 }
 
