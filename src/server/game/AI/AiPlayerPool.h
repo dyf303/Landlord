@@ -1,5 +1,5 @@
-#ifndef __AI_PLAYER_POOL
-#define __AI_PLAYER_POOL
+#ifndef __AI_PLAYER_POOL_H
+#define __AI_PLAYER_POOL_H
 
 class Player;
 

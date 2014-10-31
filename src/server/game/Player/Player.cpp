@@ -8,6 +8,7 @@
 
 Player::Player(WorldSession* session) :_roomid(0), _left(nullptr), _right(nullptr), _queueFlags(QUEUE_FLAGS_NULL)
 , _playerType(PLAYER_TYPE_USER), _start(false), _defaultGrabLandlordPlayerId(0), _grabLandlordScore(-1), _landlordPlayerId(-1)
+, _gameStatus(GAME_STATUS_WAIT_START)
 {
 	_session = session;
 
@@ -35,6 +36,7 @@ void Player::Update(uint32 diff)
 	checkStart();
 	checkDealCards();
 	checkGrabLandlord();
+	checkOutCard();
 }
 
 void Player::UpdateAiDelay(const uint32 diff)
@@ -238,6 +240,43 @@ void Player::checkGrabLandlord()
 			_gameStatus == GAME_STATUS_OUT_CARDING;
 		}
 	}
+}
+
+void Player::checkOutCard()
+{
+	if (_gameStatus < GAME_STATUS_WAIT_OUT_CARD)
+		return;
+
+	if (getPlayerType() == PLAYER_TYPE_AI && _left->getGameStatus() == GAME_STATUS_OUT_CARDED)
+		_gameStatus = GAME_STATUS_OUT_CARDING;
+
+	if (_gameStatus == GAME_STATUS_OUT_CARDING)
+	{
+		if (getPlayerType() == PLAYER_TYPE_AI)
+		{
+			/// ai out cards
+		}
+		else
+		{
+			WorldPacket data(CMSG_CARD_OUT, 40);
+			data.resize(8);
+			data << getid();
+			data << uint32(_cardType);
+			data.append((char *)_outCards, 24);
+
+			GetSession()->SendPacket(&data);
+
+			if (_left->getPlayerType() == PLAYER_TYPE_USER)
+				_left->GetSession()->SendPacket(&data);
+
+			if (_right->getPlayerType() == PLAYER_TYPE_USER)
+				_right->GetSession()->SendPacket(&data);
+
+			_gameStatus = GAME_STATUS_OUT_CARDED;
+		}
+	}
+	if (_gameStatus == GAME_STATUS_OUT_CARDED && _right->getGameStatus() == GAME_STATUS_OUT_CARDING)
+		_gameStatus = GAME_STATUS_WAIT_OUT_CARD;
 }
 
 void Player::sendTwoDesk()

@@ -228,3 +228,18 @@ void WorldSession::HandleGrabLandlord(WorldPacket& recvPacket)
 
 	getPlayer()->setGameStatus(GAME_STATUS_GRAB_LAND_LORDING);
 }
+
+void WorldSession::HandleOutCards(WorldPacket& recvPacket)
+{
+	Player * player = getPlayer();
+
+	recvPacket.read((uint8 *)&player->_cardType,4);
+	recvPacket.read((uint8 *)player->_outCards, 24);
+
+	player->setGameStatus(GAME_STATUS_OUT_CARDING);
+}
+
+void WorldSession::HandleRoundOver(WorldPacket& recvPacket)
+{
+
+}

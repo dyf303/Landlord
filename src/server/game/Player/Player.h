@@ -73,6 +73,25 @@ enum AtQueueFlags
 	QUEUE_FLAGS_THREE
 };
 
+enum CardType
+{
+	CARD_TYPE_BEG,
+	CARD_TYPE_PASS =     CARD_TYPE_BEG,    /// 过牌
+	CARD_TYPE_SINGLE,				       /// 单支
+	CARD_TYPE_PAIR,					       /// 对子
+	CARD_TYPE_ROCKET,				       /// 火箭
+	CARD_TYPE_BOMB,					       /// 炸弹
+	CARD_TYPE_TRPILE,				       /// 三张
+	CARD_TYPE_TRIPLE_ONE,			       /// 三带一
+	CARD_TYPE_TRIPLE_TWO,			       /// 三带二
+	CARD_TYPE_SINGLE_PROGRESSION,	       /// 单顺
+	CARD_TYPE_PAIR_PROGRESSION,		       /// 双顺
+	CARD_TYPE_TRIPLE_PROGRESSION,	       /// 三顺
+	CARD_TYPE_AIRPLANE,				       /// 飞机带翅膀
+	CARD_TYPE_FOUR_TWO,				       /// 四带二
+	CARD_TYPE_END
+};
+
 class Player
 {
 public:
@@ -94,6 +113,9 @@ public:
 	void setDefaultLandlordUserId(uint32 id){ _defaultGrabLandlordPlayerId = id; }
 	void checkDealCards();
 	void checkGrabLandlord();
+	void checkOutCard();
+
+
 	void sendTwoDesk();
 	void sendThreeDesk();
 	void logOutPlayer(uint32 id);
@@ -134,6 +156,8 @@ private:
 	uint32 _defaultGrabLandlordPlayerId;
 	int32 _grabLandlordScore;
 	int32 _landlordPlayerId;
+	CardType _cardType;
+	char _outCards[24];
 
 private:
 	///// player data
