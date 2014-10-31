@@ -54,9 +54,9 @@ WorldSession::WorldSession(uint32 id, std::shared_ptr<WorldSocket> sock):
 WorldSession::~WorldSession()
 {
 	/// not login game
-	if (!_player)
+	if (_player != nullptr)
 	{
-		SendLoginError(3);
+		_player->logOutPlayer();
 	}
     /// - If have unclosed socket, close it
     if (_Socket)
@@ -89,6 +89,8 @@ std::string WorldSession::GetPlayerInfo() const
 /// Send a packet to the client
 void WorldSession::SendPacket(WorldPacket* packet)
 {
+	printf("%x WorldSession::SendPacket _Socket = %x\n", this, _Socket);
+	this;
     if (!_Socket)
         return;
 
@@ -162,9 +164,10 @@ bool WorldSession::Update(uint32 diff)
             break;
     }
         ///- Cleanup socket pointer if need
-        if (_Socket && !_Socket->IsOpen())
+        if (_Socket && !_Socket->IsOpen() || getPlayer() == nullptr)
         {
              _Socket = nullptr;
+			 printf("%x WorldSession::Update,_Socket = %x\n", this, _Socket);
         }
 
         if (!_Socket)
@@ -241,5 +244,17 @@ void WorldSession::HandleOutCards(WorldPacket& recvPacket)
 
 void WorldSession::HandleRoundOver(WorldPacket& recvPacket)
 {
+	Player * player = getPlayer();
 
+	recvPacket >> player->_winGold;
+
+	player->setGameStatus(GAME_STATUS_ROUNDOVERING);
+}
+
+void WorldSession::HandlLogout(WorldPacket& recvPacket)
+{
+	Player * player = getPlayer();
+	GameStatus preStatus = player->getGameStatus();
+
+	player->setGameStatus(GameStatus(preStatus | GAME_STATUS_LOG_OUTING));
 }

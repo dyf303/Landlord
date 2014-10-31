@@ -21,6 +21,6 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
 	/*0x0D*/{ "CMSG_CHAT_ICON",                  &WorldSession::Handle_NULL },
 	/*0x0E*/{ "CMSG_CHAT_CONTEXT",               &WorldSession::Handle_NULL },
 	/*0x0F*/{ "CMSG_PING",                       &WorldSession::Handle_NULL },
-	/*0x10*/{ "CMSG_EXIT",                       &WorldSession::Handle_NULL },
+	/*0x10*/{ "CMSG_LOG_OUT",                    &WorldSession::HandlLogout },
 	/*0x11*/{ "CMSG_INCREMENT_GOLD",             &WorldSession::Handle_NULL },
 };

@@ -45,7 +45,7 @@ enum Opcodes
 	CMSG_CHAT_ICON                  = 0x0D,							  /// 13表情
 	CMSG_CHAT_CONTEXT               = 0x0E,						      /// 14输入聊天内容
 	CMSG_PING                       = 0x0F,                           /// 15房间心跳包服务
-	CMSG_EXIT                       = 0x10,						      /// 16退出房间
+	CMSG_LOG_OUT                    = 0x10,						      /// 16退出房间
 	CMSG_INCREMENT_GOLD             = 0x11,                           /// 17房间增加金币服务
     NUM_MSG_TYPES                   = 0x12
 };

@@ -45,6 +45,7 @@ class WorldSession
 
 		uint32 getAccountId() const { return _accountId; }
 		Player * getPlayer() { return _player; }
+		void setPlayer(Player * player){ _player = player; };
 		char const * GetPlayerName() const;
 		std::string GetPlayerInfo() const;
 
@@ -77,6 +78,7 @@ class WorldSession
 		void HandleGrabLandlord(WorldPacket& recvPacket);
 		void HandleOutCards(WorldPacket& recvPacket);
 		void HandleRoundOver(WorldPacket& recvPacket);
+		void HandlLogout(WorldPacket& recvPacket);
     friend class World;
  
 

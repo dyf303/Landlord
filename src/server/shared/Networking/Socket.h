@@ -126,7 +126,7 @@ public:
             std::placeholders::_1, std::placeholders::_2));
     }
 
-    bool IsOpen() const { return !_closed && !_closing; }
+    bool IsOpen() const { return !_closed /*&& !_closing*/; }
 
     virtual void CloseSocket()
     {

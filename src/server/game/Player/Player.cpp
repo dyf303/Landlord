@@ -8,7 +8,7 @@
 
 Player::Player(WorldSession* session) :_roomid(0), _left(nullptr), _right(nullptr), _queueFlags(QUEUE_FLAGS_NULL)
 , _playerType(PLAYER_TYPE_USER), _start(false), _defaultGrabLandlordPlayerId(0), _grabLandlordScore(-1), _landlordPlayerId(-1)
-, _gameStatus(GAME_STATUS_WAIT_START)
+, _gameStatus(GAME_STATUS_WAIT_START), _winGold(0)
 {
 	_session = session;
 
@@ -37,6 +37,7 @@ void Player::Update(uint32 diff)
 	checkDealCards();
 	checkGrabLandlord();
 	checkOutCard();
+	checkRoundOver();
 }
 
 void Player::UpdateAiDelay(const uint32 diff)
@@ -53,15 +54,42 @@ void Player::UpdateAiDelay(const uint32 diff)
 
 void Player::checkOutPlayer()
 {
-	if (_left != nullptr && _left->LogOut())
-		logOutPlayer(_left->getid());
-	if (_right != nullptr && _right->LogOut())
-		logOutPlayer(_right->getid());
+	if ((_gameStatus & 0xf0) == GAME_STATUS_LOG_OUTING)
+	{
+		uint32 logoutStatus;
+		GameStatus preGameStatus = GameStatus(_gameStatus & 0x0f);
+		if (preGameStatus > GAME_STATUS_DEALED_CARD && preGameStatus < GAME_STATUS_ROUNDOVERING)
+			logoutStatus = 4;
+		else
+			logoutStatus = 2;
+
+		WorldPacket data(CMSG_LOG_OUT, 16);
+		
+		data.resize(8);
+		data << getid();
+		data << logoutStatus;
+
+		if (getPlayerType() == PLAYER_TYPE_USER)
+			GetSession()->SendPacket(&data);
+
+		if (_left != nullptr && _left->getPlayerType() == PLAYER_TYPE_USER)
+			_left->GetSession()->SendPacket(&data);
+
+		if (_right != nullptr && _right->getPlayerType() == PLAYER_TYPE_USER)
+			_right->GetSession()->SendPacket(&data);
+
+		if (logoutStatus == 4 && (_left->getPlayerType() == PLAYER_TYPE_USER || _right->getPlayerType() == PLAYER_TYPE_USER))
+			_playerType = PLAYER_TYPE_AI;
+		else
+		  _gameStatus = GAME_STATUS_LOG_OUTED;
+
+		GetSession()->setPlayer(nullptr);
+	}
 }
 
-void Player::logOutPlayer(uint32 id)
+void Player::logOutPlayer()
 {
-
+	_gameStatus = GameStatus(_gameStatus | GAME_STATUS_LOG_OUTING);
 }
 
 void Player::checkQueueStatus()
@@ -130,7 +158,7 @@ uint32 Player::getDefaultLandlordUserId()
 
 void Player::checkDealCards()
 {
-	if (_gameStatus == GAME_STATUS_WAIT_DEAL_CARD)
+	if (_gameStatus == GAME_STATUS_DEALING_CARD)
 	{
 		if (getPlayerType() == PLAYER_TYPE_USER)
 		{
@@ -279,6 +307,98 @@ void Player::checkOutCard()
 		_gameStatus = GAME_STATUS_WAIT_OUT_CARD;
 }
 
+void Player::checkRoundOver()
+{
+	if (_gameStatus == GAME_STATUS_ROUNDOVERING)
+	{
+		UpdatePlayerData();
+		
+		WorldPacket data(CMSG_ROUND_OVER, 160);
+
+		data.resize(8);
+		data.append((uint8 *)&_playerInfo, 152);
+
+		if (getPlayerType() == PLAYER_TYPE_USER)
+			GetSession()->SendPacket(&data);
+
+		_gameStatus = GAME_STATUS_ROUNDOVERED;
+	}
+	if (_gameStatus == GAME_STATUS_ROUNDOVERED)
+	{
+		/// reset game
+		resetGame();
+	}
+}
+
+void Player::resetGame()
+{
+	for (int i = 0; i < CARD_NUMBER; ++i)
+		_cards[i] = CARD_TERMINATE;
+	for (int i = 0; i < BASIC_CARD; ++i)
+		_baseCards[i] = CARD_TERMINATE;
+
+	_expiration = sWorld->getIntConfig(CONFIG_WAIT_TIME);
+	_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
+	_left = nullptr;
+	_right = nullptr;
+	_queueFlags = QUEUE_FLAGS_NULL;
+	_start = false;
+	_defaultGrabLandlordPlayerId = 0; 
+	_grabLandlordScore = -1;
+	_landlordPlayerId = -1;
+	 _gameStatus = GAME_STATUS_WAIT_START;
+	_winGold = 0;
+}
+
+void Player::UpdatePlayerData()
+{
+	_playerInfo.gold += _winGold;
+	if (_playerInfo.gold < 0)
+		_playerInfo.gold = 0;
+
+	_playerInfo.all_Chess++;
+
+	if (_winGold > 0)
+		_playerInfo.win_chess++;
+
+	_playerInfo.win_Rate = 100 * _playerInfo.win_chess / (float)_playerInfo.all_Chess;
+
+	uint32 doubleScore = calcDoubleScore();
+	_playerInfo.score += _winGold > 0 ? (_roomid + 1) * sWorld->getIntConfig(CONFIG_BASICSCORE) * doubleScore : 0;
+
+	UpdatePlayerLevel();
+}
+
+void Player::UpdatePlayerLevel()
+{
+	static uint32 LevelTable[] = 
+	{ 5000, 10000, 50000, 100000, 300000, 800000, 1500000, 
+	  2000000, 5000000, 10000000, 15000000, 30000000, 50000000, 100000000 };
+
+	uint32 level = 0;
+	uint32 score = _playerInfo.score;
+
+	while (score >= LevelTable[level])
+		level++;
+
+	_playerInfo.level = level;
+}
+
+uint32 Player::calcDoubleScore()
+{
+	uint32 doubleScore = 1;
+	if (_playerInfo.props_count[0] > 0 || _playerInfo.props_count[1] == -1)//Ë«±¶¾­Ñé¿¨
+	{
+		doubleScore *= 2;
+	}
+	if (_playerInfo.props_count[13] > 0 || _playerInfo.props_count[14] > 0 || _playerInfo.props_count[15] == -1)//VIP
+	{
+		doubleScore *= 2;
+	}
+
+	return doubleScore;
+}
+
 void Player::sendTwoDesk()
 {
 	if (getPlayerType() != PLAYER_TYPE_USER)
@@ -348,5 +468,5 @@ void Player::dealCards(uint8 * cards, uint8 * baseCards)
 	memcpy(_cards, cards, sizeof(_cards));
 	memcpy(_baseCards, baseCards, 3/*sizeof(_baseCards)*/);
 
-	_gameStatus = GAME_STATUS_WAIT_DEAL_CARD;
+	_gameStatus = GAME_STATUS_DEALING_CARD;
 }

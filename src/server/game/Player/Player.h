@@ -47,16 +47,20 @@ struct PlayerInfo
 
 enum GameStatus:uint8
 {
-	GAME_STATUS_WAIT_START         = 0,
-	GAME_STATUS_STARTING           = 1,
-	GAME_STATUS_STARTED            = 2,
-	GAME_STATUS_WAIT_DEAL_CARD     = 3, 
-	GAME_STATUS_DEALED_CARD        = 4,
-	GAME_STATUS_GRAB_LAND_LORDING  = 5,
-	GAME_STATUS_GRAB_LAND_LORDED   = 6,
-	GAME_STATUS_WAIT_OUT_CARD      = 7,
-	GAME_STATUS_OUT_CARDING        = 8,
-	GAME_STATUS_OUT_CARDED         = 9
+	GAME_STATUS_WAIT_START         = 0x00,
+	GAME_STATUS_STARTING           = 0x01,
+	GAME_STATUS_STARTED            = 0x02,
+	GAME_STATUS_DEALING_CARD       = 0x03,
+	GAME_STATUS_DEALED_CARD        = 0x04,
+	GAME_STATUS_GRAB_LAND_LORDING  = 0x05,
+	GAME_STATUS_GRAB_LAND_LORDED   = 0x06,
+	GAME_STATUS_WAIT_OUT_CARD      = 0x07,
+	GAME_STATUS_OUT_CARDING        = 0x08,
+	GAME_STATUS_OUT_CARDED         = 0x09,
+	GAME_STATUS_ROUNDOVERING       = 0x0A,
+	GAME_STATUS_ROUNDOVERED        = 0x0B,
+	GAME_STATUS_LOG_OUTING         = 0x10,
+	GAME_STATUS_LOG_OUTED          = 0x20
 };
 
 enum PlayerType
@@ -114,32 +118,37 @@ public:
 	void checkDealCards();
 	void checkGrabLandlord();
 	void checkOutCard();
+	void checkRoundOver();
 
-
+	void UpdatePlayerData();
+	void UpdatePlayerLevel();
 	void sendTwoDesk();
 	void sendThreeDesk();
-	void logOutPlayer(uint32 id);
+	void logOutPlayer();
 	bool expiration(){ return  _expiration < 0; }
 	void addPlayer(Player *player);
 	void setLeftPlayer(Player * left){  _left = left; }
 	void setRightPlayer(Player * right){ _right = right; }
-	bool LogOut(){ return false; }
-	bool idle(){ return false; }
+	bool LogOut(){ return _gameStatus == GAME_STATUS_LOG_OUTED; }
+	bool idle(){ return _gameStatus == QUEUE_FLAGS_NULL; }
 	bool started(){ return _playerInfo.start == 1; }
 	void setStart(){ _gameStatus = GAME_STATUS_STARTING; _playerInfo.start = 1; }
 	void dealCards(uint8 * cards, uint8 * baseCards);
-	bool endGame(){ return false; };
+	bool roundOver(){ return _gameStatus == GAME_STATUS_ROUNDOVERED; };
 	void setRoomId(uint32 roomid){ _roomid = roomid; }
 	uint32 getRoomId(){ return _roomid; }
 	void setPlayerType(PlayerType type){ _playerType = type; }
 	PlayerType getPlayerType(){ return _playerType; }
 	PlayerInfo * getPlayerInfo(){ return &_playerInfo; };
 	AtQueueFlags getQueueFlags(){ return _queueFlags; }
+	void setQueueFlags(AtQueueFlags flags){ _queueFlags = flags; }
 	GameStatus getGameStatus(){ return _gameStatus; }
 	void setGameStatus(GameStatus status){ _gameStatus = status; }
 	int32 getGrabLandlordScore(){ return _grabLandlordScore; }
 	int32 getLandlordId();
 	uint32 aiGrabLandlord();
+	uint32 calcDoubleScore();
+	void resetGame();
 
 private:
 	WorldSession* _session;
@@ -158,6 +167,7 @@ private:
 	int32 _landlordPlayerId;
 	CardType _cardType;
 	char _outCards[24];
+	int32 _winGold;
 
 private:
 	///// player data

@@ -33,7 +33,7 @@ private:
 	bool allStart(threePlayer &threeP);
 	bool allAtThree(threePlayer &threeP);
 	bool allWaitDealCards(threePlayer &threeP);
-	bool endGame(threePlayer &threeP);
+	bool roundOver(threePlayer &threeP);
 
 	void dealCards(threePlayer &threeP);
 	void shuffleCard(uint8* Cards);

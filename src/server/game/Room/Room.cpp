@@ -17,14 +17,23 @@ Room::~Room()
 
 void Room::Update(const uint32 diff)
 {
-	for (PlayerMapType::iterator itr = _playerMap.begin(); itr != _playerMap.end(); ++itr)
+	for (PlayerMapType::iterator itr = _playerMap.begin(),next; itr != _playerMap.end(); itr = next)
 	{
+		next = itr;
+		next++;
 		Player* player = itr->second;
-		if (player->LogOut() && player->idle())
+		if (player->LogOut())
 		{
-			delete player;
+			if (player->idle())
+			{
+				delete player;
+				_playerMap.erase(itr);
+			}	
 			continue;
 		}
+		if (player->getGameStatus() == GAME_STATUS_STARTED && player->getQueueFlags() == QUEUE_FLAGS_NULL)
+			_OnePlayerList.push_back(player);
+
 		player->Update(diff);
 	}
 	UpdateOne(diff);
@@ -122,12 +131,14 @@ void Room::UpdateTwo(uint32 diff)
 			_twoPlayerList.erase(itr);
 			continue;
 		}
-		if (itr->first->expiration() || itr->second->expiration())
+		Player * p2 = getPlayerFromOne();
+
+		if (itr->first->expiration() || itr->second->expiration() || p2 != nullptr)
 		{
 			/// add ai player
 			Player * p0 = itr->first;
 			Player * p1 = itr->second;
-			Player * p2 = getPlayerFromOne();
+			//Player * p2 = getPlayerFromOne();
 
 			if (p2 == nullptr)
 				p2 = sAiPlayerPool->getAiPlayer(itr->first->getRoomId());
@@ -138,7 +149,6 @@ void Room::UpdateTwo(uint32 diff)
 			_threePlayerList.push_back(std::make_pair(*itr, p2));
 			_twoPlayerList.erase(itr);
 			AddPlayer(p2->getid(), p2, false);
-
 		}
 	}
 }
@@ -173,13 +183,16 @@ bool Room::LogoutTwo(twoPlayer &twoP)
 void Room::UpdateThree(uint32 diff)
 {
 	threePlayerList::iterator itr = _threePlayerList.begin();
-	for (; itr != _threePlayerList.end(); ++itr)
+	for (threePlayerList::iterator itr = _threePlayerList.begin(),next; itr != _threePlayerList.end(); itr = next)
 	{
+		next = itr;
+		next++;
+
 		if (!LogoutThree(*itr) && allStart(*itr) && allAtThree(*itr) && allWaitDealCards(*itr))
 		{
 			dealCards(*itr);
 		}
-		if (endGame(*itr))
+		if (roundOver(*itr))
 		{
 			_threePlayerList.erase(itr);
 		}
@@ -249,9 +262,9 @@ bool Room::allWaitDealCards(threePlayer &threeP)
 	Player *p1 = threeP.first.second;
 	Player *p2 = threeP.second;
 
-	return p0->getGameStatus() < GAME_STATUS_WAIT_DEAL_CARD
-		&& p1->getGameStatus() < GAME_STATUS_WAIT_DEAL_CARD
-		&& p2->getGameStatus() < GAME_STATUS_WAIT_DEAL_CARD;
+	return p0->getGameStatus() < GAME_STATUS_DEALING_CARD
+		&& p1->getGameStatus() < GAME_STATUS_DEALING_CARD
+		&& p2->getGameStatus() < GAME_STATUS_DEALING_CARD;
 }
 
 void Room::dealCards(threePlayer &threeP)
@@ -292,13 +305,13 @@ void Room::shuffleCard(uint8* Cards)
 	}
 }
 
-bool Room::endGame(threePlayer &threeP)
+bool Room::roundOver(threePlayer &threeP)
 {
 	Player *p0 = threeP.first.first;
 	Player *p1 = threeP.first.second;
 	Player *p2 = threeP.second;
 
-	if (p0->endGame() && p1->endGame() && p2->endGame())
+	if (p0->roundOver() && p1->roundOver() && p2->roundOver())
 	{
 		return true;
 	}
@@ -309,5 +322,5 @@ void Room::AddPlayer(uint32 id, Player *player, bool inOne)
 {
 	_playerMap[id] = player;
 	if (inOne)
-	   _OnePlayerList.push_back(player);
+		_OnePlayerList.push_back(player);	  
 }

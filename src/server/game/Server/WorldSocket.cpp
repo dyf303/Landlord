@@ -104,7 +104,8 @@ void WorldSocket::AsyncWrite(WorldPacket& packet)
 	/// fix my stupid client,sizeof(Opcode) * 2
 	ServerPktHeader header(packet.size() + sizeof(Opcode) * 2, Opcode);
 
-    std::lock_guard<std::mutex> guard(_writeLock);
+
+	std::lock_guard<std::mutex> guard(_writeLock);
 
     bool needsWriteStart = _writeQueue.empty();
 
