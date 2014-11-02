@@ -84,12 +84,14 @@ void Player::checkOutPlayer()
 		  _gameStatus = GAME_STATUS_LOG_OUTED;
 
 		GetSession()->setPlayer(nullptr);
+		_session = nullptr;
 	}
 }
 
 void Player::logOutPlayer()
 {
 	_gameStatus = GameStatus(_gameStatus | GAME_STATUS_LOG_OUTING);
+	checkOutPlayer();
 }
 
 void Player::checkQueueStatus()

@@ -89,8 +89,6 @@ std::string WorldSession::GetPlayerInfo() const
 /// Send a packet to the client
 void WorldSession::SendPacket(WorldPacket* packet)
 {
-	printf("%x WorldSession::SendPacket _Socket = %x\n", this, _Socket);
-	this;
     if (!_Socket)
         return;
 
@@ -157,6 +155,8 @@ bool WorldSession::Update(uint32 diff)
 
 		(this->*opHandle.handler)(*packet);
 
+		delete packet;
+
 #define MAX_PROCESSED_PACKETS_IN_SAME_WORLDSESSION_UPDATE 100
         processedPackets++;
 
@@ -167,7 +167,6 @@ bool WorldSession::Update(uint32 diff)
         if (_Socket && !_Socket->IsOpen() || getPlayer() == nullptr)
         {
              _Socket = nullptr;
-			 printf("%x WorldSession::Update,_Socket = %x\n", this, _Socket);
         }
 
         if (!_Socket)
@@ -218,6 +217,7 @@ void WorldSession::HandlePlayerLogin(WorldPacket& recvPacket)
 
 		SendPacket(&packet);
 	}
+	TC_LOG_INFO("server.worldserver", "Player: %s login,remote IP: %s", GetPlayerInfo().c_str(), _Address.c_str());
 }
 
 void WorldSession::HandleWaitStart(WorldPacket& recvPacket)

@@ -24,10 +24,11 @@ void Room::Update(const uint32 diff)
 		Player* player = itr->second;
 		if (player->LogOut())
 		{
-			if (player->idle())
+			if (!player->inTheGame())
 			{
-				delete player;
 				_playerMap.erase(itr);
+				if (player->idle())
+					delete player;
 			}	
 			continue;
 		}
