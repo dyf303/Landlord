@@ -168,6 +168,14 @@ SocketTimeOutTime = 30000
 waitTime = 4000
 
 #
+#    aiDelay
+#        Description:  Time(in milliseconds) that ai delay out card or grab landlord
+#                     
+#        Default:     2000 - (2 second)
+
+aiDelay = 2000
+
+#
 #    aiPlayerCount
 #        Description:  ai player count 
 #                     

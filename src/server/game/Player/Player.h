@@ -52,8 +52,8 @@ enum GameStatus:uint8
 	GAME_STATUS_STARTED            = 0x02,
 	GAME_STATUS_DEALING_CARD       = 0x03,
 	GAME_STATUS_DEALED_CARD        = 0x04,
-	GAME_STATUS_GRAB_LAND_LORDING  = 0x05,
-	GAME_STATUS_GRAB_LAND_LORDED   = 0x06,
+	GAME_STATUS_GRABING_LANDLORD   = 0x05,
+	GAME_STATUS_GRABED_LAND_LORD   = 0x06,
 	GAME_STATUS_WAIT_OUT_CARD      = 0x07,
 	GAME_STATUS_OUT_CARDING        = 0x08,
 	GAME_STATUS_OUT_CARDED         = 0x09,
@@ -131,7 +131,7 @@ public:
 	void setLeftPlayer(Player * left){  _left = left; }
 	void setRightPlayer(Player * right){ _right = right; }
 	bool LogOut(){ return _gameStatus == GAME_STATUS_LOG_OUTED; }
-	bool idle(){ return _gameStatus == QUEUE_FLAGS_NULL; }
+	bool idle(){ return _queueFlags == QUEUE_FLAGS_NULL; }
 	bool inTheGame(){ return (_gameStatus & 0x0f) > GAME_STATUS_DEALED_CARD && (_gameStatus & 0x0f) < GAME_STATUS_ROUNDOVERED; }
 	bool started(){ return _playerInfo.start == 1; }
 	void setStart(){ _gameStatus = GAME_STATUS_STARTING; _playerInfo.start = 1; }
@@ -148,9 +148,11 @@ public:
 	void setGameStatus(GameStatus status){ _gameStatus = status; }
 	int32 getGrabLandlordScore(){ return _grabLandlordScore; }
 	int32 getLandlordId();
+	void setLandlordId(uint32 id){ _landlordPlayerId = id; }
 	uint32 aiGrabLandlord();
 	uint32 calcDoubleScore();
 	void resetGame();
+	void beginOutCard();
 
 private:
 	WorldSession* _session;

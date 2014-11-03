@@ -229,7 +229,7 @@ void WorldSession::HandleGrabLandlord(WorldPacket& recvPacket)
 {
 	recvPacket >> getPlayer()->_grabLandlordScore;
 
-	getPlayer()->setGameStatus(GAME_STATUS_GRAB_LAND_LORDING);
+	getPlayer()->setGameStatus(GAME_STATUS_GRABING_LANDLORD);
 }
 
 void WorldSession::HandleOutCards(WorldPacket& recvPacket)

@@ -34,6 +34,7 @@ private:
 	bool allAtThree(threePlayer &threeP);
 	bool allWaitDealCards(threePlayer &threeP);
 	bool roundOver(threePlayer &threeP);
+	void releaseAiPlayer(threePlayer &threeP);
 
 	void dealCards(threePlayer &threeP);
 	void shuffleCard(uint8* Cards);
