@@ -102,6 +102,7 @@ public:
 	explicit Player(WorldSession* session);
 	~Player();
 	friend class WorldSession;
+	friend class OutCardAi;
 
 	WorldSession* GetSession() const { return _session; }
 	void loadData(PlayerInfo &pInfo);
@@ -131,7 +132,7 @@ public:
 	void setRightPlayer(Player * right){ _right = right; }
 	bool LogOut(){ return _gameStatus == GAME_STATUS_LOG_OUTED; }
 	bool idle(){ return _gameStatus == QUEUE_FLAGS_NULL; }
-	bool inTheGame(){ return (_gameStatus & 0x0f) > GAME_STATUS_GRAB_LAND_LORDED && (_gameStatus & 0x0f) < GAME_STATUS_ROUNDOVERED; }
+	bool inTheGame(){ return (_gameStatus & 0x0f) > GAME_STATUS_DEALED_CARD && (_gameStatus & 0x0f) < GAME_STATUS_ROUNDOVERED; }
 	bool started(){ return _playerInfo.start == 1; }
 	void setStart(){ _gameStatus = GAME_STATUS_STARTING; _playerInfo.start = 1; }
 	void dealCards(uint8 * cards, uint8 * baseCards);
@@ -167,7 +168,7 @@ private:
 	int32 _grabLandlordScore;
 	int32 _landlordPlayerId;
 	CardType _cardType;
-	char _outCards[24];
+	uint8  _outCards[24];
 	int32 _winGold;
 private:
 	///// player data

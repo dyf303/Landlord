@@ -22,6 +22,9 @@ void Room::Update(const uint32 diff)
 		next = itr;
 		next++;
 		Player* player = itr->second;
+
+		player->Update(diff);
+
 		if (player->LogOut())
 		{
 			if (!player->inTheGame())
@@ -34,8 +37,6 @@ void Room::Update(const uint32 diff)
 		}
 		if (player->getGameStatus() == GAME_STATUS_STARTED && player->getQueueFlags() == QUEUE_FLAGS_NULL)
 			_OnePlayerList.push_back(player);
-
-		player->Update(diff);
 	}
 	UpdateOne(diff);
 	UpdateTwo(diff);
@@ -139,7 +140,6 @@ void Room::UpdateTwo(uint32 diff)
 			/// add ai player
 			Player * p0 = itr->first;
 			Player * p1 = itr->second;
-			//Player * p2 = getPlayerFromOne();
 
 			if (p2 == nullptr)
 				p2 = sAiPlayerPool->getAiPlayer(itr->first->getRoomId());
@@ -154,7 +154,8 @@ void Room::UpdateTwo(uint32 diff)
 	}
 }
 
-bool Room::LogoutTwo(twoPlayer &twoP)
+bool
+Room::LogoutTwo(twoPlayer &twoP)
 {
 	Player *p0 = twoP.first;
 	Player *p1 = twoP.second;
@@ -188,8 +189,12 @@ void Room::UpdateThree(uint32 diff)
 	{
 		next = itr;
 		next++;
-
-		if (!LogoutThree(*itr) && allStart(*itr) && allAtThree(*itr) && allWaitDealCards(*itr))
+		if (LogoutThree(*itr))
+		{
+			_threePlayerList.erase(itr);
+			continue;
+		}
+		if (allStart(*itr) && allAtThree(*itr) && allWaitDealCards(*itr))
 		{
 			dealCards(*itr);
 		}
@@ -206,6 +211,7 @@ bool Room::LogoutThree(threePlayer &threeP)
 	Player *p0 = threeP.first.first;
 	Player *p1 = threeP.first.second;
 	Player *p2 = threeP.second;
+
 	bool  logout0 = p0->LogOut();
 	bool  logout1 = p1->LogOut();
 	bool  logout2 = p2->LogOut();
@@ -323,5 +329,9 @@ void Room::AddPlayer(uint32 id, Player *player, bool inOne)
 {
 	_playerMap[id] = player;
 	if (inOne)
-		_OnePlayerList.push_back(player);	  
+	{
+		player->setQueueFlags(QUEUE_FLAGS_ONE);
+	  _OnePlayerList.push_back(player);
+	}
+		 
 }
