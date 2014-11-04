@@ -45,7 +45,7 @@ void Player::Update(uint32 diff)
 
 void Player::UpdateAiDelay(const uint32 diff)
 {
-	if (getPlayerType() != PLAYER_TYPE_AI)
+	if (!(getPlayerType() & PLAYER_TYPE_AI))
 		return;
 
 	if (_gameStatus == GAME_STATUS_GRABING_LANDLORD || _gameStatus == GAME_STATUS_OUT_CARDING)
@@ -97,7 +97,7 @@ void Player::checkOutPlayer()
 
 				_gameStatus = GAME_STATUS_LOG_OUTED;
 			}
-		  _playerType = PLAYER_TYPE_AI;
+			_playerType = PLAYER_TYPE_REPLACE_AI;
 		}			
 		else
 		{
@@ -201,7 +201,7 @@ void Player::checkDealCards()
 		}
 		_gameStatus = GAME_STATUS_DEALED_CARD;
 
-		if (getDefaultLandlordUserId() == getid() && getPlayerType() == PLAYER_TYPE_AI)
+		if (getDefaultLandlordUserId() == getid() && (getPlayerType() & PLAYER_TYPE_AI))
 			_gameStatus = GAME_STATUS_GRABING_LANDLORD;
 	}
 }
@@ -249,7 +249,7 @@ void Player::checkGrabLandlord()
 
 	if (_gameStatus == GAME_STATUS_DEALED_CARD)
 	{
-		if (getPlayerType() == PLAYER_TYPE_AI && (_defaultGrabLandlordPlayerId == getid()
+		if (getPlayerType() & PLAYER_TYPE_AI && (_defaultGrabLandlordPlayerId == getid()
 			|| _left->getGameStatus() == GAME_STATUS_GRABED_LAND_LORD))
 		{
 			_gameStatus = GAME_STATUS_GRABING_LANDLORD;
@@ -260,7 +260,7 @@ void Player::checkGrabLandlord()
 	{
 		do 
 		{
-			if (getPlayerType() == PLAYER_TYPE_AI)
+			if (getPlayerType() & PLAYER_TYPE_AI)
 			{
 				if (_aiDelay > 0)
 					break;
@@ -315,11 +315,11 @@ void Player::beginOutCard()
 	_left->setGameStatus(GAME_STATUS_WAIT_OUT_CARD);
 	_right->setGameStatus(GAME_STATUS_WAIT_OUT_CARD);
 
-	if (_landlordPlayerId == getid() && getPlayerType() == PLAYER_TYPE_AI)
+	if (_landlordPlayerId == getid() && getPlayerType() & PLAYER_TYPE_AI)
 		setGameStatus(GAME_STATUS_OUT_CARDING);
-	else if (_landlordPlayerId == _left->getid() && _left->getPlayerType() == PLAYER_TYPE_AI)
+	else if (_landlordPlayerId == _left->getid() && _left->getPlayerType() & PLAYER_TYPE_AI)
 		_left->setGameStatus(GAME_STATUS_OUT_CARDING);
-	else if (_landlordPlayerId == _right->getid() && _right->getPlayerType() == PLAYER_TYPE_AI)
+	else if (_landlordPlayerId == _right->getid() && _right->getPlayerType() & PLAYER_TYPE_AI)
 		_right->setGameStatus(GAME_STATUS_OUT_CARDING);
 }
 
@@ -332,7 +332,7 @@ void Player::checkOutCard()
 	{
 		do 
 		{
-			if (getPlayerType() == PLAYER_TYPE_AI)
+			if (getPlayerType() & PLAYER_TYPE_AI)
 			{
 				if (_aiDelay > 0)
 					break;
@@ -360,7 +360,9 @@ void Player::checkOutCard()
 
 			_gameStatus = GAME_STATUS_OUT_CARDED;
 
-			if (_right->getPlayerType() == PLAYER_TYPE_AI)
+			sOutCardAi->updateCardsFace(_cards, _outCards);
+
+			if (_right->getPlayerType() & PLAYER_TYPE_AI)
 				_right->setGameStatus(GAME_STATUS_OUT_CARDING);
 		} while (0);
 	}
@@ -384,9 +386,9 @@ void Player::checkRoundOver()
 
 		_gameStatus = GAME_STATUS_ROUNDOVERED;
 
-		if (_left->getPlayerType() == PLAYER_TYPE_AI && _left->getGameStatus() != GAME_STATUS_ROUNDOVERED)
+		if (_left->getPlayerType() & PLAYER_TYPE_AI && _left->getGameStatus() != GAME_STATUS_ROUNDOVERED)
 			_left->setGameStatus(GAME_STATUS_ROUNDOVERING);
-		if (_right->getPlayerType() == PLAYER_TYPE_AI && _right->getGameStatus() != GAME_STATUS_ROUNDOVERED)
+		if (_right->getPlayerType() & PLAYER_TYPE_AI && _right->getGameStatus() != GAME_STATUS_ROUNDOVERED)
 		{
 			_right->setGameStatus(GAME_STATUS_ROUNDOVERING);
 			_right->checkRoundOver();
@@ -406,7 +408,7 @@ void Player::resetGame()
 	for (int i = 0; i < BASIC_CARD; ++i)
 		_baseCards[i] = CARD_TERMINATE;
 
-	if (getPlayerType() == PLAYER_TYPE_USER)
+	if (getPlayerType() & PLAYER_TYPE_USER )
 		_queueFlags = QUEUE_FLAGS_NULL;
 
 	_expiration = sWorld->getIntConfig(CONFIG_WAIT_TIME);

@@ -12,7 +12,10 @@ Room::Room(uint32 id, uint32 basic_score) :_id(id), _basic_score(basic_score)
 
 Room::~Room()
 {
-
+	_playerMap.clear();
+	_OnePlayerList.clear();
+	_twoPlayerList.clear();
+	_threePlayerList.clear();
 }
 
 void Room::Update(const uint32 diff)
@@ -334,23 +337,28 @@ void Room::releaseAiPlayer(threePlayer &threeP)
 	Player *p1 = threeP.first.second;
 	Player *p2 = threeP.second;
 
-	if (p0->getPlayerType() == PLAYER_TYPE_AI)
+	if (p0->getPlayerType() & PLAYER_TYPE_AI)
 	{
 		p0->setGameStatus(GAME_STATUS_LOG_OUTED);
-		sAiPlayerPool->releasePlayer(p0);
+
+		if (p0->getPlayerType() == PLAYER_TYPE_AI)
+		   sAiPlayerPool->releasePlayer(p0);
 	}		
-	if (p1->getPlayerType() == PLAYER_TYPE_AI)
+	if (p1->getPlayerType() & PLAYER_TYPE_AI)
 	{
 		p1->setGameStatus(GAME_STATUS_LOG_OUTED);
+
+		if (p1->getPlayerType() == PLAYER_TYPE_AI)
 		sAiPlayerPool->releasePlayer(p1);
 	}
 	
-	if (p2->getPlayerType() == PLAYER_TYPE_AI)
+	if (p2->getPlayerType() & PLAYER_TYPE_AI)
 	{
 		p2->setGameStatus(GAME_STATUS_LOG_OUTED);
-		sAiPlayerPool->releasePlayer(p2);
-	}
-		
+
+		if (p2->getPlayerType() == PLAYER_TYPE_AI)
+		  sAiPlayerPool->releasePlayer(p2);
+	}		
 }
 
 void Room::AddPlayer(uint32 id, Player *player, bool inOne)

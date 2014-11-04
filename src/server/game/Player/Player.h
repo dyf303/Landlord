@@ -65,8 +65,9 @@ enum GameStatus:uint8
 
 enum PlayerType
 {
-	PLAYER_TYPE_AI,
-	PLAYER_TYPE_USER
+	PLAYER_TYPE_USER         = 0x01,
+	PLAYER_TYPE_REPLACE_AI   = 0x11,
+	PLAYER_TYPE_AI           = 0x10
 };
 
 enum AtQueueFlags

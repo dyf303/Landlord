@@ -40,3 +40,34 @@ void OutCardAi::OutCard(Player *player)
 		player->_cardType = CARD_TYPE_PASS;
 	}
 }
+
+void OutCardAi::updateCardsFace(uint8* pcSelfCard, uint8* pcOutCard)
+{
+	int iCardIdx = 0;
+	if (*pcOutCard == CARD_TERMINATE)
+	{
+		return ;
+	}
+	while (pcOutCard[iCardIdx] != CARD_TERMINATE)
+	{
+		char cTmpCard = pcOutCard[iCardIdx];
+		rearrangeCards(pcSelfCard, cTmpCard);
+		iCardIdx++;
+	}
+}
+
+void OutCardAi::rearrangeCards(uint8* SelfCards, uint8 cCard)
+{
+	int iCardIdx = 0;
+	for (; SelfCards[iCardIdx] != CARD_TERMINATE; iCardIdx++)
+	{
+		if (SelfCards[iCardIdx] == cCard)
+		{
+			break;
+		}
+	}
+	for (; SelfCards[iCardIdx] != CARD_TERMINATE; iCardIdx++)
+	{
+		SelfCards[iCardIdx] = SelfCards[iCardIdx + 1];
+	}
+}

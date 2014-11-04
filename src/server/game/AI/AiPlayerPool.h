@@ -14,6 +14,7 @@ public:
 
 	Player * getAiPlayer(uint32 roomid);
 	void releasePlayer(Player * player);
+
 private:
 	typedef std::list<Player *> aiPlayerList;
 

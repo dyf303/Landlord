@@ -32,6 +32,14 @@ WorldServerPort = 8085
 
 BindIP = "0.0.0.0"
 
+#
+#    Network.TcpNoDelay:
+#        Description: TCP Nagle algorithm setting.
+#         Default:    0 - (Enabled, Less traffic, More latency)
+#                     1 - (Disabled, More traffic, Less latency, TCP_NO_DELAY)
+
+Network.TcpNodelay = 1
+
 #  Logger config values: Given a logger "name"
 #    Logger.name
 #        Description: Defines 'What to log'

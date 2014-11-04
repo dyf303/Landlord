@@ -25,15 +25,12 @@ void ShutdownThreadPool(std::vector<std::thread>& threadPool);
 int main(int argc, char* argv[])
 {
 	std::string configFile = _LANDLORD_CORE_CONFIG;
-
 	std::string configError;
 	if (!sConfigMgr->LoadInitial(configFile, configError))
 	{
 		printf("Error in config file: %s\n", configError.c_str());
 		return 1;
 	}
-
-
 	boost::asio::signal_set signals(_ioService, SIGINT, SIGTERM);
 #if PLATFORM == PLATFORM_WINDOWS
 	signals.add(SIGBREAK);
