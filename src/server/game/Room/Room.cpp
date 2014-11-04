@@ -4,6 +4,14 @@
 #include "Player.h"
 #include <utility>
 
+#define  RELEASE(player)     if(player->getPlayerType() == PLAYER_TYPE_AI)\
+	                          sAiPlayerPool->releasePlayer(player);\
+	                           else \
+                             delete player;
+#define OUT_TWO(player)      if(player->getPlayerType() == PLAYER_TYPE_AI)\
+	                           sAiPlayerPool->releasePlayer(player); \
+							   else\
+							   _OnePlayerList.push_back(player);
 
 Room::Room(uint32 id, uint32 basic_score) :_id(id), _basic_score(basic_score)
 {
@@ -164,25 +172,17 @@ bool Room::LogoutTwo(twoPlayer &twoP)
 {
 	Player *p0 = twoP.first;
 	Player *p1 = twoP.second;
-	bool logout = false;
-	if (p0->LogOut() )
-	{
-		if (!p1->LogOut())
-		{
-			_OnePlayerList.push_back(p1);
-		}
-		delete p0;
-		logout = true;
-	}
+	bool logout = true;
+	bool  logout0 = p0->LogOut();
+	bool  logout1 = p1->LogOut();
 
-	if (p1->LogOut())
+	uint8 logoutStatus = (logout0 ? 1 : 0) | (logout1 ? 1 << 1 : 0);
+	switch (logoutStatus)
 	{
-		if (!p0->LogOut())
-		{
-			_OnePlayerList.push_back(p0);
-		}
-		delete p1;
-		logout = true;
+	case 0:logout = false; break;
+	case 1:RELEASE(p0); OUT_TWO(p1); break;
+	case 2:OUT_TWO(p0); RELEASE(p1); break;
+	case 3:RELEASE(p0); RELEASE(p1) break;
 	}
 	return logout;
 }
@@ -239,7 +239,7 @@ bool Room::LogoutThree(threePlayer &threeP)
 
 	case 6:_OnePlayerList.push_back(p0); delete p1; delete p2; break;
 
-	case 7:delete p0; delete p1; delete p2; break;
+	case 7:RELEASE(p0); RELEASE(p1); RELEASE(p2); break;
 
 	}
 	return logout;

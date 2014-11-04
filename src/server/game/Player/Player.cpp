@@ -102,10 +102,24 @@ void Player::checkOutPlayer()
 		else
 		{
 			if (_left != nullptr)
+			{
 				_left->_right = nullptr;
+				if (_left->getPlayerType() == PLAYER_TYPE_AI)
+				{
+					_left->setGameStatus(GAME_STATUS_LOG_OUTING);
+					_left->checkOutPlayer();
+				}
+				
+			}
 			if (_right != nullptr)
+			{
 				_right->_left = nullptr;
-
+				if (_right->getPlayerType() == PLAYER_TYPE_AI)
+				{
+					_right->setGameStatus(GAME_STATUS_LOG_OUTING);
+					_right->checkOutPlayer();
+				}									
+			}				
 			_gameStatus = GAME_STATUS_LOG_OUTED;
 		}
 		

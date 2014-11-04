@@ -35,7 +35,7 @@ Player * AiPlayerPool::getAiPlayer(uint32 roomid)
 	Player *player = _aiPlayerList.back();
 		
 	_aiPlayerList.pop_back();
-
+	printf("getAiPlayer,now ai count: %d\n",_aiPlayerList.size());
 	configureAiPlayer(player, roomid);
 
 	return player;
@@ -65,5 +65,7 @@ void AiPlayerPool::releasePlayer(Player * player)
 {
 	_aiPlayerPoolLock.lock();
 	_aiPlayerList.push_back(player);
+	static uint32  releaseAiCount = 0;
+	printf("releasePlayer,now ai count: %d\n", _aiPlayerList.size());
 	_aiPlayerPoolLock.unlock();
 }
