@@ -157,8 +157,7 @@ void Room::UpdateTwo(uint32 diff)
 	}
 }
 
-bool
-Room::LogoutTwo(twoPlayer &twoP)
+bool Room::LogoutTwo(twoPlayer &twoP)
 {
 	Player *p0 = twoP.first;
 	Player *p1 = twoP.second;

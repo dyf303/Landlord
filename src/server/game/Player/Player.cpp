@@ -387,7 +387,11 @@ void Player::checkRoundOver()
 		if (_left->getPlayerType() == PLAYER_TYPE_AI && _left->getGameStatus() != GAME_STATUS_ROUNDOVERED)
 			_left->setGameStatus(GAME_STATUS_ROUNDOVERING);
 		if (_right->getPlayerType() == PLAYER_TYPE_AI && _right->getGameStatus() != GAME_STATUS_ROUNDOVERED)
+		{
 			_right->setGameStatus(GAME_STATUS_ROUNDOVERING);
+			_right->checkRoundOver();
+		}
+			
 	}
 	if (_gameStatus == GAME_STATUS_ROUNDOVERED)
 	{
