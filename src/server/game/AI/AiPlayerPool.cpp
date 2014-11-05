@@ -1,5 +1,6 @@
 #include "AiPlayerPool.h"
 
+#include<stdio.h>
 #include "Player.h"
 #include "World.h"
 
@@ -52,7 +53,7 @@ void AiPlayerPool::configureAiPlayer(Player * player, uint32 roomid)
 	aiPlayerInfo.all_Chess = roomid * 100 + 80;
 	aiPlayerInfo.win_chess = aiPlayerInfo.all_Chess * 0.4;
 	aiPlayerInfo.win_Rate = 0.4;
-	sprintf_s(aiPlayerInfo.account, 12,"%d", aiPlayerInfo.id + 524288);
+	snprintf(aiPlayerInfo.account, 12,"%d", aiPlayerInfo.id + 524288);
 	memcpy(aiPlayerInfo.nick_name, "天天向上",8);
 
 	player->loadData(aiPlayerInfo);

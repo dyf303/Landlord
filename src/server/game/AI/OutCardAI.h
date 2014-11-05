@@ -20,7 +20,7 @@ private:
 	
 	uint32 getCardsNumber(uint8 * cards);
 	void resetCards(uint8 * cards);
-	void OutCardAi::rearrangeCards(uint8* SelfCards, uint8 Card);
+	void rearrangeCards(uint8* SelfCards, uint8 Card);
 };
 
 #define sOutCardAi OutCardAi::instance()
