@@ -119,7 +119,9 @@ void Player::checkOutPlayer()
 					_right->setGameStatus(GAME_STATUS_LOG_OUTING);
 					_right->checkOutPlayer();
 				}									
-			}				
+			}
+			_left = nullptr;
+			_right = nullptr;
 			_gameStatus = GAME_STATUS_LOG_OUTED;
 		}
 		

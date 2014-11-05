@@ -62,12 +62,14 @@ void WorldSocket::ReadDataHandler()
 		case CMSG_PLAYER_LOGIN:
             if (_worldSession)
             {
-            //    TC_LOG_ERROR("network", "WorldSocket::ProcessIncoming: received duplicate CMSG_AUTH_SESSION from %s", _worldSession->GetPlayerInfo().c_str());
+                TC_LOG_ERROR("network", "WorldSocket::ProcessIncoming: received duplicate CMSG_AUTH_SESSION from %s", _worldSession->GetPlayerInfo().c_str());
                 break;
             }
 
             AddSession(packet);
             break;
+		case CMSG_PING:_worldSession->ResetTimeOutTime(); break;
+
         default:
         {
             if (!_worldSession)
