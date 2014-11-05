@@ -24,6 +24,7 @@ void ShutdownThreadPool(std::vector<std::thread>& threadPool);
 
 int main(int argc, char* argv[])
 {
+	
 	std::string configFile = _LANDLORD_CORE_CONFIG;
 	std::string configError;
 	if (!sConfigMgr->LoadInitial(configFile, configError))
@@ -48,7 +49,6 @@ int main(int argc, char* argv[])
 
 	// Initialize the World
 	sWorld->SetInitialWorldSettings();
-
 	// Launch the worldserver listener socket
 	uint16 worldPort = uint16(sWorld->getIntConfig(CONFIG_PORT_WORLD));
 	std::string worldListener = sConfigMgr->GetStringDefault("BindIP", "0.0.0.0");

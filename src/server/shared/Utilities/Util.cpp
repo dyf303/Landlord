@@ -530,7 +530,7 @@ void vutf8printf(FILE* out, const char *str, va_list* ap)
     size_t wtemp_len = 32*1024-1;
     Utf8toWStr(temp_buf, temp_len, wtemp_buf, wtemp_len);
 
-    CharToOemBuffW(&wtemp_buf[0], &temp_buf[0], wtemp_len+1);
+  //  CharToOemBuffW(&wtemp_buf[0], &temp_buf[0], wtemp_len+1);
     fprintf(out, "%s", temp_buf);
 #else
     vfprintf(out, str, *ap);
