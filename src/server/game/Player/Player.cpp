@@ -329,18 +329,23 @@ void Player::beginOutCard()
 	_left->setGameStatus(GAME_STATUS_WAIT_OUT_CARD);
 	_right->setGameStatus(GAME_STATUS_WAIT_OUT_CARD);
 
-	if (_landlordPlayerId == getid() && getPlayerType() & PLAYER_TYPE_AI)
-		setGameStatus(GAME_STATUS_OUT_CARDING);
-	else if (_landlordPlayerId == _left->getid() && _left->getPlayerType() & PLAYER_TYPE_AI)
-		_left->setGameStatus(GAME_STATUS_OUT_CARDING);
-	else if (_landlordPlayerId == _right->getid() && _right->getPlayerType() & PLAYER_TYPE_AI)
-		_right->setGameStatus(GAME_STATUS_OUT_CARDING);
+	//if (_landlordPlayerId == getid() && getPlayerType() & PLAYER_TYPE_AI)
+	//	setGameStatus(GAME_STATUS_OUT_CARDING);
+	//else if (_landlordPlayerId == _left->getid() && _left->getPlayerType() & PLAYER_TYPE_AI)
+	//	_left->setGameStatus(GAME_STATUS_OUT_CARDING);
+	//else if (_landlordPlayerId == _right->getid() && _right->getPlayerType() & PLAYER_TYPE_AI)
+	//	_right->setGameStatus(GAME_STATUS_OUT_CARDING);
 }
 
 void Player::checkOutCard()
 {
 	if (_gameStatus < GAME_STATUS_WAIT_OUT_CARD || _gameStatus > GAME_STATUS_OUT_CARDED)
 		return;
+	if (getPlayerType() & PLAYER_TYPE_AI && (_gameStatus == GAME_STATUS_WAIT_OUT_CARD && getLandlordId() == getid()
+		|| _left->getGameStatus() == GAME_STATUS_OUT_CARDED))
+	{
+		_gameStatus = GAME_STATUS_OUT_CARDING;
+	}
 
 	if (_gameStatus == GAME_STATUS_OUT_CARDING)
 	{
@@ -380,8 +385,8 @@ void Player::checkOutCard()
 				_right->setGameStatus(GAME_STATUS_OUT_CARDING);
 		} while (0);
 	}
-	//if (_gameStatus == GAME_STATUS_OUT_CARDED && _right->getGameStatus() == GAME_STATUS_OUT_CARDED)
-		//_gameStatus = GAME_STATUS_WAIT_OUT_CARD;
+	if (_gameStatus == GAME_STATUS_OUT_CARDED && _right->getGameStatus() == GAME_STATUS_OUT_CARDED)
+		_gameStatus = GAME_STATUS_WAIT_OUT_CARD;
 }
 
 void Player::checkRoundOver()

@@ -368,6 +368,5 @@ void Room::AddPlayer(uint32 id, Player *player, bool inOne)
 	{
 	  player->setQueueFlags(QUEUE_FLAGS_ONE);
 	  _OnePlayerList.push_back(player);
-	}
-		 
+	}		 
 }

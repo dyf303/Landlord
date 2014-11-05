@@ -28,7 +28,8 @@ void OutCardAi::resetCards(uint8 * cards)
 void OutCardAi::OutCard(Player *player)
 {
 	/// test
-	if (player->getLandlordId() == player->getid() && getCardsNumber(player->_cards) == 20)
+	if (player->getLandlordId() == player->getid() && getCardsNumber(player->_cards) == 20
+		|| (player->_left->_cardType == CARD_TYPE_PASS && player->_right->_cardType == CARD_TYPE_PASS))
 	{
 		resetCards(player->_outCards);
 		player->_outCards[0] = player->_cards[0];
