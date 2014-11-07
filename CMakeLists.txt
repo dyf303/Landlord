@@ -21,6 +21,7 @@ endif()
 include(CheckPlatform)
 
 find_package(PCHSupport)
+find_package(Threads REQUIRED)
 
 include(ConfigureBoost)
 
