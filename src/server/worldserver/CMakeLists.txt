@@ -60,6 +60,7 @@ add_executable(worldserver
 target_link_libraries(worldserver 
   game
   shared
+  ${CMAKE_THREAD_LIBS_INIT}
   ${Boost_LIBRARIES})
 
 if( WIN32 )
