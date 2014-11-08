@@ -110,7 +110,10 @@ class ByteBuffer
             _storage.clear();
             _rpos = _wpos = 0;
         }
-
+		void clearRead()
+		{
+			_rpos = 0;
+		}
         template <typename T> void append(T value)
         {
             EndianConvert(value);

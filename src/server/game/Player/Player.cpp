@@ -9,7 +9,7 @@
 
 Player::Player(WorldSession* session) :_roomid(0), _left(nullptr), _right(nullptr), _queueFlags(QUEUE_FLAGS_NULL)
 , _playerType(PLAYER_TYPE_USER), _start(false), _defaultGrabLandlordPlayerId(0), _grabLandlordScore(-1), _landlordPlayerId(-1)
-, _gameStatus(GAME_STATUS_WAIT_START), _winGold(0)
+, _gameStatus(GAME_STATUS_WAIT_START), _winGold(0), _aiGameStatus(AI_GAME_STATUS_NULL)
 {
 	_session = session;
 
@@ -29,115 +29,24 @@ Player::~Player()
 
 void Player::Update(uint32 diff)
 {
+	UpdateExpiration(diff);
+	UpdateQueueStatus();
+
+	if (_playerType & PLAYER_TYPE_AI)
+		UpdateAiDelay(diff);
+
+	UpdateGameStatus();
+}
+
+void Player::UpdateExpiration(const uint32 diff)
+{
 	if (_queueFlags == QUEUE_FLAGS_ONE || _queueFlags == QUEUE_FLAGS_TWO)
-	  _expiration -= diff;
-
-	UpdateAiDelay(diff);
-
-	checkOutPlayer();
-	checkQueueStatus();
-	checkStart();
-	checkDealCards();
-	checkGrabLandlord();
-	checkOutCard();
-	checkRoundOver();
-}
-
-void Player::UpdateAiDelay(const uint32 diff)
-{
-	if (!(getPlayerType() & PLAYER_TYPE_AI))
-		return;
-
-	if (_gameStatus == GAME_STATUS_GRABING_LANDLORD || _gameStatus == GAME_STATUS_OUT_CARDING)
 	{
-		_aiDelay -= diff;
+		_expiration -= diff;
 	}
 }
 
-void Player::checkOutPlayer()
-{
-	if ((_gameStatus & 0xf0) == GAME_STATUS_LOG_OUTING)
-	{
-		uint32 logoutStatus;
-		GameStatus preGameStatus = GameStatus(_gameStatus & 0x0f);
-		if (preGameStatus > GAME_STATUS_DEALING_CARD && preGameStatus < GAME_STATUS_ROUNDOVERING)
-		{
-			logoutStatus = 4;
-		}
-		else
-		{
-			logoutStatus = 2;
-		}
-
-		WorldPacket data(CMSG_LOG_OUT, 16);
-		
-		data.resize(8);
-		data << getid();
-		data << logoutStatus;
-
-		if (getPlayerType() == PLAYER_TYPE_USER)
-			GetSession()->SendPacket(&data);
-
-		if (_left != nullptr && _left->getPlayerType() == PLAYER_TYPE_USER )
-			_left->GetSession()->SendPacket(&data);
-
-		if (_right != nullptr && _right->getPlayerType() == PLAYER_TYPE_USER )
-			_right->GetSession()->SendPacket(&data);
-
-		if (logoutStatus == 4)
-		{
-			if (_left->getPlayerType() == PLAYER_TYPE_USER || _right->getPlayerType() == PLAYER_TYPE_USER)
-			{
-				_gameStatus = GameStatus(0x0f & _gameStatus);
-			}
-			else
-			{
-				_left->setGameStatus(GAME_STATUS_LOG_OUTING);
-				_right->setGameStatus(GAME_STATUS_LOG_OUTING);
-
-				_gameStatus = GAME_STATUS_LOG_OUTED;
-			}
-			_playerType = PLAYER_TYPE_REPLACE_AI;
-		}			
-		else
-		{
-			if (_left != nullptr)
-			{
-				_left->_right = nullptr;
-				if (_left->getPlayerType() == PLAYER_TYPE_AI)
-				{
-					_left->setGameStatus(GAME_STATUS_LOG_OUTING);
-					_left->checkOutPlayer();
-				}
-				
-			}
-			if (_right != nullptr)
-			{
-				_right->_left = nullptr;
-				if (_right->getPlayerType() == PLAYER_TYPE_AI)
-				{
-					_right->setGameStatus(GAME_STATUS_LOG_OUTING);
-					_right->checkOutPlayer();
-				}									
-			}
-			_left = nullptr;
-			_right = nullptr;
-			_gameStatus = GAME_STATUS_LOG_OUTED;
-		}
-		
-		if (_session != nullptr)
-		  GetSession()->setPlayer(nullptr);
-		_session = nullptr;
-	}
-}
-
-void Player::logOutPlayer()
-{
-	_gameStatus = GameStatus(_gameStatus | GAME_STATUS_LOG_OUTING);
-	checkOutPlayer();
-}
-
-void Player::checkQueueStatus()
+void Player::UpdateQueueStatus()
 {
 	if (_left != nullptr && _right != nullptr)
 	{
@@ -155,32 +64,144 @@ void Player::checkQueueStatus()
 			sendTwoDesk();
 		}
 	}
-
 }
 
-void Player::checkStart()
+void Player::UpdateGameStatus()
 {
-	if (_gameStatus == GAME_STATUS_STARTING)
+	switch (_gameStatus)
 	{
-		if (_left != nullptr && _left->getPlayerType() == PLAYER_TYPE_USER)
-		{
-			WorldPacket data(CMSG_WAIT_START, 12);
-			data.resize(8);
-			data << uint32(this->getid());
+	case GAME_STATUS_STARTING:handleWaitStart(); break;
 
-			_left->GetSession()->SendPacket(&data);
-		}
+	case GAME_STATUS_DEALING_CARD: handleDealCard(); break;
 
-		if (_right != nullptr && _right->getPlayerType() == PLAYER_TYPE_USER)
-		{
-			WorldPacket data(CMSG_WAIT_START, 12);
-			data.resize(8);
-			data << uint32(this->getid());
+	case GAME_STATUS_GRABING_LANDLORD:handleGrabLandlord(); break;
 
-			_right->GetSession()->SendPacket(&data);
-		}
-		_gameStatus = GAME_STATUS_STARTED;
+	case GAME_STATUS_OUT_CARDING:handleOutCard();break;
+
+	case GAME_STATUS_ROUNDOVERING:handleRoundOver();break;
+
+	case GAME_STATUS_LOG_OUTING:handLogOut();break;
+
+	default: break;
 	}
+}
+
+void Player::handleWaitStart()
+{
+	WorldPacket data(CMSG_WAIT_START, 12);
+	data.resize(8);
+	data << uint32(this->getid());
+
+	senToAll(&data);
+	_gameStatus = GAME_STATUS_STARTED;
+}
+
+void Player::handleDealCard()
+{
+	WorldPacket data(SMSG_CARD_DEAL, 36);
+	data.resize(8);
+	data << getDefaultLandlordUserId();
+	data.append((char *)_cards, CARD_NUMBER);
+	data.append((char *)_baseCards, BASIC_CARD);
+
+	senToAll(&data);
+  _gameStatus = GAME_STATUS_DEALED_CARD;
+}
+
+void Player::handleGrabLandlord()
+{
+	WorldPacket data(CMSG_GRAD_LANDLORD, 20);
+
+	data.resize(8);
+	data << uint32(this->getid());
+	data << _grabLandlordScore;
+	data << getLandlordId();
+
+	senToAll(&data);
+	_gameStatus = GAME_STATUS_GRABED_LAND_LORD;
+}
+
+void Player::handleOutCard()
+{
+	WorldPacket data(CMSG_CARD_OUT, 40);
+	data.resize(8);
+	data << getid();
+	data << uint32(_cardType);
+	data.append(_outCards, 24);
+
+	senToAll(&data);
+	_gameStatus = GAME_STATUS_OUT_CARDED;
+	sOutCardAi->updateCardsFace(_cards, _outCards);
+}
+
+void Player::handleRoundOver()
+{
+	UpdatePlayerData();
+
+	WorldPacket data(CMSG_ROUND_OVER, 160);
+
+	data.resize(8);
+	data.append((uint8 *)&_playerInfo, 152);
+
+	senToAll(&data);
+	_gameStatus = GAME_STATUS_ROUNDOVERED;
+
+	resetGame();
+}
+
+void Player::handLogOut()
+{
+	uint32 logoutStatus;
+	GameStatus preGameStatus = GameStatus(_gameStatus & 0x0f);
+	if (preGameStatus > GAME_STATUS_DEALING_CARD && preGameStatus < GAME_STATUS_ROUNDOVERING)
+	{
+		logoutStatus = 4;
+	}
+	else
+	{
+		logoutStatus = 2;
+	}
+
+	WorldPacket data(CMSG_LOG_OUT, 16);
+
+	data.resize(8);
+	data << getid();
+	data << logoutStatus;
+
+	senToAll(&data);
+	_gameStatus = GAME_STATUS_LOG_OUTED;
+
+	if (logoutStatus == 4)
+	{
+		if (_left->getPlayerType() == PLAYER_TYPE_USER || _right->getPlayerType() == PLAYER_TYPE_USER)
+		{
+			_gameStatus = GameStatus(0x0f & _gameStatus);
+		}
+		_playerType = PLAYER_TYPE_REPLACE_AI;
+	}
+}
+
+void Player::senToAll(WorldPacket* packet)
+{
+	if (_left != nullptr)
+		_left->sendPacket(packet);
+
+	if (_right != nullptr)
+		_right->sendPacket(packet);
+}
+
+void Player::sendPacket(WorldPacket* packet)
+{
+	if (_playerType == PLAYER_TYPE_USER)
+		GetSession()->SendPacket(packet);
+	else
+		aiRecvPacket(packet);
+}
+
+void Player::logOutPlayer()
+{
+	_gameStatus = GameStatus(_gameStatus | GAME_STATUS_LOG_OUTING);
+	handLogOut();
 }
 
 uint32 Player::getDefaultLandlordUserId()
@@ -199,42 +220,6 @@ uint32 Player::getDefaultLandlordUserId()
 	}
 
 	return _defaultGrabLandlordPlayerId;
-}
-
-void Player::checkDealCards()
-{
-	if (_gameStatus == GAME_STATUS_DEALING_CARD)
-	{
-		if (getPlayerType() == PLAYER_TYPE_USER)
-		{
-			WorldPacket data(SMSG_CARD_DEAL, 36);
-			data.resize(8);
-			data << getDefaultLandlordUserId();
-			data.append((char *)_cards, CARD_NUMBER);
-			data.append((char *)_baseCards, BASIC_CARD);
-
-			GetSession()->SendPacket(&data);
-		}
-		_gameStatus = GAME_STATUS_DEALED_CARD;
-
-		if (getDefaultLandlordUserId() == getid() && (getPlayerType() & PLAYER_TYPE_AI))
-			_gameStatus = GAME_STATUS_GRABING_LANDLORD;
-	}
-}
-
-uint32 Player::aiGrabLandlord()
-{
-	uint32 leftGrabScore = _left->getGrabLandlordScore();
-	uint32 rightGrabScore = _right->getGrabLandlordScore();
-
-	uint32 maxScore = std::max(leftGrabScore, rightGrabScore);
-
-	if (leftGrabScore == -1 && rightGrabScore == -1)
-		return (rand() % 4);
-	else if (maxScore == 0)
-		return 1;
-	else 
-		return 0;
 }
 
 int32 Player::getLandlordId()
@@ -256,170 +241,6 @@ int32 Player::getLandlordId()
 			_landlordPlayerId =  _right->getid();
 	}
 	return _landlordPlayerId;
-}
-
-void Player::checkGrabLandlord()
-{
-	if (_gameStatus != GAME_STATUS_DEALED_CARD && _gameStatus != GAME_STATUS_GRABING_LANDLORD)
-		return;
-
-	if (_gameStatus == GAME_STATUS_DEALED_CARD)
-	{
-		if (getPlayerType() & PLAYER_TYPE_AI && (_defaultGrabLandlordPlayerId == getid()
-			|| _left->getGameStatus() == GAME_STATUS_GRABED_LAND_LORD))
-		{
-			_gameStatus = GAME_STATUS_GRABING_LANDLORD;
-		}
-	}
-
-	if (_gameStatus == GAME_STATUS_GRABING_LANDLORD)
-	{
-		do 
-		{
-			if (getPlayerType() & PLAYER_TYPE_AI)
-			{
-				if (_aiDelay > 0)
-					break;
-				else
-				{
-					_grabLandlordScore = aiGrabLandlord();
-					_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
-				}
-			}
-		
-		    WorldPacket data(CMSG_GRAD_LANDLORD, 20);
-
-			data.resize(8);
-			data << uint32(this->getid());
-			data << _grabLandlordScore;
-			data << getLandlordId();
-
-			if (getPlayerType() == PLAYER_TYPE_USER)
-				GetSession()->SendPacket(&data);
-
-			if (_left->getPlayerType() == PLAYER_TYPE_USER)
-				_left->GetSession()->SendPacket(&data);
-
-			if (_right->getPlayerType() == PLAYER_TYPE_USER)
-				_right->GetSession()->SendPacket(&data);
-
-		    _gameStatus = GAME_STATUS_GRABED_LAND_LORD;
-		} while (0);
-	}
-
-	if (_gameStatus == GAME_STATUS_GRABED_LAND_LORD)
-	{
-		if (getGrabLandlordScore() == 0 && _left->getGrabLandlordScore() == 0 && _right->getGrabLandlordScore() == 0)
-		{
-			_defaultGrabLandlordPlayerId = 0;
-			_grabLandlordScore = -1;
-			_gameStatus = GAME_STATUS_STARTED;
-		}
-		if (getLandlordId() != -1)
-		{
-			beginOutCard();
-		}
-	}
-}
-
-void Player::beginOutCard()
-{
-	_left->setLandlordId(_landlordPlayerId);
-	_right->setLandlordId(_landlordPlayerId);
-
-	setGameStatus(GAME_STATUS_WAIT_OUT_CARD);
-	_left->setGameStatus(GAME_STATUS_WAIT_OUT_CARD);
-	_right->setGameStatus(GAME_STATUS_WAIT_OUT_CARD);
-
-	//if (_landlordPlayerId == getid() && getPlayerType() & PLAYER_TYPE_AI)
-	//	setGameStatus(GAME_STATUS_OUT_CARDING);
-	//else if (_landlordPlayerId == _left->getid() && _left->getPlayerType() & PLAYER_TYPE_AI)
-	//	_left->setGameStatus(GAME_STATUS_OUT_CARDING);
-	//else if (_landlordPlayerId == _right->getid() && _right->getPlayerType() & PLAYER_TYPE_AI)
-	//	_right->setGameStatus(GAME_STATUS_OUT_CARDING);
-}
-
-void Player::checkOutCard()
-{
-	if (_gameStatus < GAME_STATUS_WAIT_OUT_CARD || _gameStatus > GAME_STATUS_OUT_CARDED)
-		return;
-	if (getPlayerType() & PLAYER_TYPE_AI && (_gameStatus == GAME_STATUS_WAIT_OUT_CARD && getLandlordId() == getid()
-		|| _left->getGameStatus() == GAME_STATUS_OUT_CARDED))
-	{
-		_gameStatus = GAME_STATUS_OUT_CARDING;
-	}
-
-	if (_gameStatus == GAME_STATUS_OUT_CARDING)
-	{
-		do 
-		{
-			if (getPlayerType() & PLAYER_TYPE_AI)
-			{
-				if (_aiDelay > 0)
-					break;
-				else
-				{
-					/// ai out cards
-					sOutCardAi->OutCard(this);
-					_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
-				}
-			}
-			WorldPacket data(CMSG_CARD_OUT, 40);
-			data.resize(8);
-			data << getid();
-			data << uint32(_cardType);
-			data.append(_outCards, 24);
-
-			if (getPlayerType() == PLAYER_TYPE_USER)
-				GetSession()->SendPacket(&data);
-
-			if (_left->getPlayerType() == PLAYER_TYPE_USER)
-				_left->GetSession()->SendPacket(&data);
-
-			if (_right->getPlayerType() == PLAYER_TYPE_USER)
-				_right->GetSession()->SendPacket(&data);
-
-			_gameStatus = GAME_STATUS_OUT_CARDED;
-
-			sOutCardAi->updateCardsFace(_cards, _outCards);
-
-			if (_right->getPlayerType() & PLAYER_TYPE_AI)
-				_right->setGameStatus(GAME_STATUS_OUT_CARDING);
-		} while (0);
-	}
-	if (_gameStatus == GAME_STATUS_OUT_CARDED && _right->getGameStatus() == GAME_STATUS_OUT_CARDED)
-		_gameStatus = GAME_STATUS_WAIT_OUT_CARD;
-}
-
-void Player::checkRoundOver()
-{
-	if (_gameStatus == GAME_STATUS_ROUNDOVERING)
-	{
-		UpdatePlayerData();
-		
-		WorldPacket data(CMSG_ROUND_OVER, 160);
-
-		data.resize(8);
-		data.append((uint8 *)&_playerInfo, 152);
-
-		if (getPlayerType() == PLAYER_TYPE_USER)
-			GetSession()->SendPacket(&data);
-
-		_gameStatus = GAME_STATUS_ROUNDOVERED;
-
-		if (_left->getPlayerType() & PLAYER_TYPE_AI && _left->getGameStatus() != GAME_STATUS_ROUNDOVERED)
-			_left->setGameStatus(GAME_STATUS_ROUNDOVERING);
-		if (_right->getPlayerType() & PLAYER_TYPE_AI && _right->getGameStatus() != GAME_STATUS_ROUNDOVERED)
-		{
-			_right->setGameStatus(GAME_STATUS_ROUNDOVERING);
-			_right->checkRoundOver();
-		}
-			
-	}
-	if (_gameStatus == GAME_STATUS_ROUNDOVERED)
-	{
-		resetGame();
-	}
 }
 
 void Player::resetGame()

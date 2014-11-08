@@ -63,6 +63,14 @@ enum GameStatus:uint8
 	GAME_STATUS_LOG_OUTED          = 0x20
 };
 
+enum AiGameStatus :uint8
+{
+	AI_GAME_STATUS_NULL          = 0x00,
+	AI_GAME_STATUS_GRAD_LANDLORD = 0x01,
+	AI_GAME_STATUS_OUT_CARD      = 0x02
+
+};
+
 enum PlayerType
 {
 	PLAYER_TYPE_USER         = 0x01,
@@ -111,16 +119,10 @@ public:
 	char const * GetName() { return _playerInfo.nick_name; }
 
 	void Update(const uint32 diff);
-	void UpdateAiDelay(const uint32 diff);
-	void checkOutPlayer();
-	void checkQueueStatus();
-	void checkStart();
+	void UpdateExpiration(const uint32 diff);
+
 	uint32 getDefaultLandlordUserId();
 	void setDefaultLandlordUserId(uint32 id){ _defaultGrabLandlordPlayerId = id; }
-	void checkDealCards();
-	void checkGrabLandlord();
-	void checkOutCard();
-	void checkRoundOver();
 
 	void UpdatePlayerData();
 	void UpdatePlayerLevel();
@@ -150,11 +152,30 @@ public:
 	int32 getGrabLandlordScore(){ return _grabLandlordScore; }
 	int32 getLandlordId();
 	void setLandlordId(uint32 id){ _landlordPlayerId = id; }
-	uint32 aiGrabLandlord();
+	uint32 aiGrabLandlord(uint32 score);
 	uint32 calcDoubleScore();
 	void resetGame();
 	void beginOutCard();
 
+	void UpdateQueueStatus();
+	void UpdateAiDelay(const uint32 diff);
+	void UpdateGameStatus();
+
+	void handleWaitStart();
+	void handleDealCard();
+	void handleGrabLandlord();
+	void handleOutCard();
+	void handleRoundOver();
+	void handLogOut();
+
+	void senToAll(WorldPacket* packet);
+	void sendPacket(WorldPacket* packet);
+	void aiRecvPacket(WorldPacket* packet);
+
+	void aiHandleDealCard(WorldPacket* packet);
+	void aiHandleGrabLandlord(WorldPacket* packet);
+	void aiHandleOutCards(WorldPacket* packet);
+	void aiHandlLogout(WorldPacket* packet);
 private:
 	WorldSession* _session;
 	int32 _expiration;
@@ -173,6 +194,9 @@ private:
 	CardType _cardType;
 	uint8  _outCards[24];
 	int32 _winGold;
+
+	AiGameStatus _aiGameStatus;
+
 private:
 	///// player data
 	PlayerInfo _playerInfo;
