@@ -58,13 +58,6 @@ void Player::aiHandleDealCard(WorldPacket* packet)
 		_grabLandlordScore = aiGrabLandlord(0);
 		_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY) * 2;
 		_aiGameStatus = AI_GAME_STATUS_GRAD_LANDLORD;
-
-		if (getLandlordId() == getid())
-		{
-			sOutCardAi->OutCard(this);
-			_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
-			_aiGameStatus = AI_GAME_STATUS_OUT_CARD;
-		}
 	}
 }
 
@@ -84,13 +77,6 @@ void Player::aiHandleGrabLandlord(WorldPacket* packet)
 		_grabLandlordScore = aiGrabLandlord(grabLandlordScore);
 		_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY) * 2;
 		_aiGameStatus = AI_GAME_STATUS_GRAD_LANDLORD;
-	}
-
-	if (getLandlordId() == getid())
-	{
-		sOutCardAi->OutCard(this);
-		_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
-		_aiGameStatus = AI_GAME_STATUS_OUT_CARD;
 	}
 }
 

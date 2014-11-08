@@ -119,6 +119,13 @@ void Player::handleGrabLandlord()
 
 	senToAll(&data);
 	_gameStatus = GAME_STATUS_GRABED_LAND_LORD;
+
+	if (getPlayerType() &PLAYER_TYPE_AI && getLandlordId() == getid())
+	{
+		sOutCardAi->OutCard(this);
+		_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
+		_aiGameStatus = AI_GAME_STATUS_OUT_CARD;
+	}		
 }
 
 void Player::handleOutCard()
@@ -183,6 +190,8 @@ void Player::handLogOut()
 
 void Player::senToAll(WorldPacket* packet)
 {
+	sendPacket(packet);
+
 	if (_left != nullptr)
 		_left->sendPacket(packet);
 
