@@ -7,11 +7,26 @@
 
 #define PLAYER(left,right) (left !=nullptr ? left:right)
 
-Player::Player(WorldSession* session) :_roomid(0), _left(nullptr), _right(nullptr), _queueFlags(QUEUE_FLAGS_NULL)
-, _playerType(PLAYER_TYPE_USER), _start(false), _defaultGrabLandlordPlayerId(0), _grabLandlordScore(-1), _landlordPlayerId(-1)
-, _gameStatus(GAME_STATUS_WAIT_START), _winGold(0), _aiGameStatus(AI_GAME_STATUS_NULL)
+Player::Player(WorldSession* session) 
 {
 	_session = session;
+	initPlayer();
+}
+
+void Player::initPlayer()
+{
+	_roomid = 0; 
+	_left = nullptr; 
+	_right = nullptr;
+	_queueFlags = QUEUE_FLAGS_NULL;
+	_playerType = PLAYER_TYPE_USER;
+	_start= false;
+	_defaultGrabLandlordPlayerId= 0;
+	_grabLandlordScore= -1;
+	_landlordPlayerId =-1;
+	_gameStatus = GAME_STATUS_WAIT_START;
+	_winGold = 0;
+	_aiGameStatus = AI_GAME_STATUS_NULL;
 
 	for (int i = 0; i < CARD_NUMBER; ++i)
 		_cards[i] = CARD_TERMINATE;
@@ -21,7 +36,6 @@ Player::Player(WorldSession* session) :_roomid(0), _left(nullptr), _right(nullpt
 	_expiration = sWorld->getIntConfig(CONFIG_WAIT_TIME);
 	_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
 }
-
 Player::~Player()
 {
 
@@ -80,9 +94,7 @@ void Player::UpdateGameStatus()
 
 	case GAME_STATUS_ROUNDOVERING:handleRoundOver();break;
 
-	case GAME_STATUS_LOG_OUTING:handLogOut();break;
-
-	default: break;
+	default: if (_gameStatus & 0x10)handLogOut(); break;
 	}
 }
 
@@ -104,7 +116,6 @@ void Player::handleDealCard()
 	data.append((char *)_cards, CARD_NUMBER);
 	data.append((char *)_baseCards, BASIC_CARD);
 
-	//senToAll(&data);
 	sendPacket(&data);
 
   _gameStatus = GAME_STATUS_DEALED_CARD;
@@ -146,7 +157,7 @@ void Player::handleRoundOver()
 	data.resize(8);
 	data.append((uint8 *)&_playerInfo, 152);
 
-	senToAll(&data);
+	sendPacket(&data);
 	_gameStatus = GAME_STATUS_ROUNDOVERED;
 
 	resetGame();
@@ -164,14 +175,12 @@ void Player::handLogOut()
 	{
 		logoutStatus = 2;
 	}
-
 	WorldPacket data(CMSG_LOG_OUT, 16);
-
 	data.resize(8);
 	data << getid();
 	data << logoutStatus;
 
-	senToAll(&data);
+	senToAll(&data,true);
 	_gameStatus = GAME_STATUS_LOG_OUTED;
 
 	if (logoutStatus == 4)
@@ -182,6 +191,20 @@ void Player::handLogOut()
 		}
 		_playerType = PLAYER_TYPE_REPLACE_AI;
 	}
+	if (_gameStatus == GAME_STATUS_LOG_OUTED)
+	{
+		notifyOther();
+		if (_playerType == PLAYER_TYPE_USER)
+			GetSession()->setPlayer(nullptr);
+	}
+}
+
+void Player::notifyOther()
+{
+	if (_left != nullptr)
+		_left->_right = nullptr;
+	if (_right != nullptr)
+		_right->_left = nullptr;
 }
 
 void Player::senToAll(WorldPacket* packet,bool bSelf/* = false*/)
@@ -251,6 +274,16 @@ int32 Player::getLandlordId()
 
 void Player::resetGame()
 {
+	if (_left->getGameStatus() == GAME_STATUS_OUT_CARDED && _right->getGameStatus() == GAME_STATUS_OUT_CARDED)
+	{
+		if (this->getPlayerType() & PLAYER_TYPE_AI)
+			this->setGameStatus(GAME_STATUS_LOG_OUTED);
+		if (_left->getPlayerType() & PLAYER_TYPE_AI)
+			_left->setGameStatus(GAME_STATUS_LOG_OUTED);
+		if (_right->getPlayerType() & PLAYER_TYPE_AI)
+			_right->setGameStatus(GAME_STATUS_LOG_OUTED);
+	}
+
 	for (int i = 0; i < CARD_NUMBER; ++i)
 		_cards[i] = CARD_TERMINATE;
 	for (int i = 0; i < BASIC_CARD; ++i)
@@ -259,6 +292,8 @@ void Player::resetGame()
 	if (getPlayerType() & PLAYER_TYPE_USER )
 		_queueFlags = QUEUE_FLAGS_NULL;
 
+	_gameStatus = GAME_STATUS_WAIT_START;
+	_aiGameStatus = AI_GAME_STATUS_NULL;
 	_expiration = sWorld->getIntConfig(CONFIG_WAIT_TIME);
 	_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
 	_left = nullptr;

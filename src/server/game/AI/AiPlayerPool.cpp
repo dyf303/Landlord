@@ -56,9 +56,12 @@ void AiPlayerPool::configureAiPlayer(Player * player, uint32 roomid)
 	snprintf(aiPlayerInfo.account, 12,"%d", aiPlayerInfo.id + 524288);
 	memcpy(aiPlayerInfo.nick_name, "天天向上",8);
 
+	player->initPlayer();
+
 	player->loadData(aiPlayerInfo);
 	player->setPlayerType(PLAYER_TYPE_AI);
 	player->setStart();
+
 
 }
 

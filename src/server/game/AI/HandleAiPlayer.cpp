@@ -127,7 +127,7 @@ void Player::aiHandlLogout(WorldPacket* packet)
 	*packet >> logoutPlayerId;
 
 	if (_left == nullptr || _right == nullptr
-		|| (_left->getPlayerType()&PLAYER_TYPE_AI && _right->getPlayerType()&PLAYER_TYPE_AI))
+		|| _left->getPlayerType()&PLAYER_TYPE_AI || _right->getPlayerType()&PLAYER_TYPE_AI)
 	{
 		_gameStatus = GAME_STATUS_LOG_OUTED;
 	}

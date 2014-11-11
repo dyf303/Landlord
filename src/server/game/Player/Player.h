@@ -113,6 +113,7 @@ public:
 	friend class WorldSession;
 	friend class OutCardAi;
 
+	void initPlayer();
 	WorldSession* GetSession() const { return _session; }
 	void loadData(PlayerInfo &pInfo);
 	uint32 getid(){ return _playerInfo.id; }
@@ -167,6 +168,7 @@ public:
 	void handleOutCard();
 	void handleRoundOver();
 	void handLogOut();
+	void notifyOther();
 
 	void senToAll(WorldPacket* packet,bool bSelf = false);
 	void sendPacket(WorldPacket* packet);
