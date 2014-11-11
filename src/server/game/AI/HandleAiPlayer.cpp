@@ -72,6 +72,13 @@ void Player::aiHandleGrabLandlord(WorldPacket* packet)
 	*packet >> grabLandlordScore;
 	*packet >> landlordId;
 
+	if (getLandlordId() == getid())
+	{
+		sOutCardAi->OutCard(this);
+		_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
+		_aiGameStatus = AI_GAME_STATUS_OUT_CARD;
+	}
+
 	if (grabLandlordPlayerId == _left->getid() && landlordId == -1)
 	{
 		_grabLandlordScore = aiGrabLandlord(grabLandlordScore);

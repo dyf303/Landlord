@@ -168,7 +168,7 @@ public:
 	void handleRoundOver();
 	void handLogOut();
 
-	void senToAll(WorldPacket* packet);
+	void senToAll(WorldPacket* packet,bool bSelf = false);
 	void sendPacket(WorldPacket* packet);
 	void aiRecvPacket(WorldPacket* packet);
 

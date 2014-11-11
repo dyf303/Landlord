@@ -104,7 +104,9 @@ void Player::handleDealCard()
 	data.append((char *)_cards, CARD_NUMBER);
 	data.append((char *)_baseCards, BASIC_CARD);
 
-	senToAll(&data);
+	//senToAll(&data);
+	sendPacket(&data);
+
   _gameStatus = GAME_STATUS_DEALED_CARD;
 }
 
@@ -117,15 +119,9 @@ void Player::handleGrabLandlord()
 	data << _grabLandlordScore;
 	data << getLandlordId();
 
-	senToAll(&data);
+	senToAll(&data,true);
 	_gameStatus = GAME_STATUS_GRABED_LAND_LORD;
 
-	if (getPlayerType() &PLAYER_TYPE_AI && getLandlordId() == getid())
-	{
-		sOutCardAi->OutCard(this);
-		_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
-		_aiGameStatus = AI_GAME_STATUS_OUT_CARD;
-	}		
 }
 
 void Player::handleOutCard()
@@ -136,7 +132,7 @@ void Player::handleOutCard()
 	data << uint32(_cardType);
 	data.append(_outCards, 24);
 
-	senToAll(&data);
+	senToAll(&data,true);
 	_gameStatus = GAME_STATUS_OUT_CARDED;
 	sOutCardAi->updateCardsFace(_cards, _outCards);
 }
@@ -188,9 +184,10 @@ void Player::handLogOut()
 	}
 }
 
-void Player::senToAll(WorldPacket* packet)
+void Player::senToAll(WorldPacket* packet,bool bSelf/* = false*/)
 {
-	sendPacket(packet);
+	if (bSelf)
+	   sendPacket(packet);
 
 	if (_left != nullptr)
 		_left->sendPacket(packet);
