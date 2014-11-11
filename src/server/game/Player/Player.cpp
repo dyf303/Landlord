@@ -36,9 +36,18 @@ void Player::initPlayer()
 	_expiration = sWorld->getIntConfig(CONFIG_WAIT_TIME);
 	_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
 }
+
 Player::~Player()
 {
 
+}
+
+PlayerGameType Player::getPlayerGameType()
+{
+	if (getLandlordId() == getid())
+		return PLAYER_GAME_TYPE_LANDLORD;
+	else
+		return PLAYER_GAME_TYPE_FARMER;
 }
 
 void Player::Update(uint32 diff)
@@ -113,8 +122,8 @@ void Player::handleDealCard()
 	WorldPacket data(SMSG_CARD_DEAL, 36);
 	data.resize(8);
 	data << getDefaultLandlordUserId();
-	data.append((char *)_cards, CARD_NUMBER);
-	data.append((char *)_baseCards, BASIC_CARD);
+	data.append((uint8 *)_cards, CARD_NUMBER);
+	data.append((uint8 *)_baseCards, BASIC_CARD);
 
 	sendPacket(&data);
 

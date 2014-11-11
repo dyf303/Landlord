@@ -40,9 +40,9 @@ struct PlayerInfo
 	uint32							  type;	                       /// 每个人的类型(初始值是1， 0 - landlord, 1 - farmer)
 	uint32					          desk_id;                     /// 桌子标识
 	uint32                            props_count[PROPS_COUNT];    /// 用户道具数目
-	char                              account[NAME_LENGTH];        /// 用户账号
-	char                              name[NAME_LENGTH];           /// 用户姓名
-	char                              nick_name[NAME_LENGTH];      /// 用户昵称
+	uint8                              account[NAME_LENGTH];        /// 用户账号
+	uint8                              name[NAME_LENGTH];           /// 用户姓名
+	uint8                              nick_name[NAME_LENGTH];      /// 用户昵称
 };
 
 enum GameStatus:uint8
@@ -76,6 +76,12 @@ enum PlayerType
 	PLAYER_TYPE_USER         = 0x01,
 	PLAYER_TYPE_REPLACE_AI   = 0x11,
 	PLAYER_TYPE_AI           = 0x10
+};
+
+enum PlayerGameType
+{
+	PLAYER_GAME_TYPE_LANDLORD = 0x01,
+	PLAYER_GAME_TYPE_FARMER   = 0x02
 };
 
 enum AtQueueFlags
@@ -117,7 +123,7 @@ public:
 	WorldSession* GetSession() const { return _session; }
 	void loadData(PlayerInfo &pInfo);
 	uint32 getid(){ return _playerInfo.id; }
-	char const * GetName() { return _playerInfo.nick_name; }
+	uint8 const * GetName() { return _playerInfo.nick_name; }
 
 	void Update(const uint32 diff);
 	void UpdateExpiration(const uint32 diff);
@@ -156,7 +162,7 @@ public:
 	uint32 aiGrabLandlord(uint32 score);
 	uint32 calcDoubleScore();
 	void resetGame();
-	void beginOutCard();
+	PlayerGameType getPlayerGameType();
 
 	void UpdateQueueStatus();
 	void UpdateAiDelay(const uint32 diff);
