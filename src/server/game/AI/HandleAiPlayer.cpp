@@ -132,3 +132,21 @@ void Player::aiHandlLogout(WorldPacket* packet)
 		_gameStatus = GAME_STATUS_LOG_OUTED;
 	}
 }
+
+void Player::aiHandGame()
+{
+	if (_left->getGameStatus() == GAME_STATUS_GRABED_LAND_LORD
+		&& getGameStatus() == GAME_STATUS_DEALED_CARD
+		&&getLandlordId() == -1)
+	{
+		_grabLandlordScore = aiGrabLandlord(_left->getGrabLandlordScore());
+		_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY) * 2;
+		_aiGameStatus = AI_GAME_STATUS_GRAD_LANDLORD;
+	}
+	if (getGameStatus() == GAME_STATUS_START_OUT_CARD)
+	{
+		sOutCardAi->OutCard(this);
+		_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
+		_aiGameStatus = AI_GAME_STATUS_OUT_CARD;
+	}
+}

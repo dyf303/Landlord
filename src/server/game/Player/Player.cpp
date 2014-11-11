@@ -132,6 +132,8 @@ void Player::handleGrabLandlord()
 
 	senToAll(&data,true);
 	_gameStatus = GAME_STATUS_GRABED_LAND_LORD;
+	if (getLandlordId() == getid())
+		_gameStatus = GAME_STATUS_START_OUT_CARD;
 
 }
 
@@ -146,6 +148,7 @@ void Player::handleOutCard()
 	sOutCardAi->updateCardsFace(_cards, _outCards);
 	senToAll(&data,true);
 	_gameStatus = GAME_STATUS_OUT_CARDED;
+	_right->setGameStatus(GAME_STATUS_START_OUT_CARD);
 }
 
 void Player::handleRoundOver()
@@ -181,22 +184,23 @@ void Player::handLogOut()
 	data << logoutStatus;
 
 	senToAll(&data,true);
-	_gameStatus = GAME_STATUS_LOG_OUTED;
+	//_gameStatus = GAME_STATUS_LOG_OUTED;
 
 	if (logoutStatus == 4)
 	{
 		if (_left->getPlayerType() == PLAYER_TYPE_USER || _right->getPlayerType() == PLAYER_TYPE_USER)
 		{
 			_gameStatus = GameStatus(0x0f & _gameStatus);
+			_playerType = PLAYER_TYPE_REPLACE_AI;
+			aiHandGame();
+			return;
 		}
-		_playerType = PLAYER_TYPE_REPLACE_AI;
 	}
-	if (_gameStatus == GAME_STATUS_LOG_OUTED)
-	{
-		notifyOther();
-		if (_playerType == PLAYER_TYPE_USER)
-			GetSession()->setPlayer(nullptr);
-	}
+
+	notifyOther();
+	if (_playerType == PLAYER_TYPE_USER)
+		GetSession()->setPlayer(nullptr);
+	_gameStatus = GAME_STATUS_LOG_OUTED;
 }
 
 void Player::notifyOther()

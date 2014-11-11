@@ -54,7 +54,7 @@ enum GameStatus:uint8
 	GAME_STATUS_DEALED_CARD        = 0x04,
 	GAME_STATUS_GRABING_LANDLORD   = 0x05,
 	GAME_STATUS_GRABED_LAND_LORD   = 0x06,
-	GAME_STATUS_WAIT_OUT_CARD      = 0x07,
+	GAME_STATUS_START_OUT_CARD     = 0x07,
 	GAME_STATUS_OUT_CARDING        = 0x08,
 	GAME_STATUS_OUT_CARDED         = 0x09,
 	GAME_STATUS_ROUNDOVERING       = 0x0A,
@@ -178,6 +178,7 @@ public:
 	void aiHandleGrabLandlord(WorldPacket* packet);
 	void aiHandleOutCards(WorldPacket* packet);
 	void aiHandlLogout(WorldPacket* packet);
+	void aiHandGame();
 	bool RoundOver(uint32 outCardPlayerId);
 private:
 	WorldSession* _session;
