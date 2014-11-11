@@ -98,12 +98,25 @@ void Player::aiHandleOutCards(WorldPacket* packet)
 	*packet >> outCardsType;
 	packet->read((uint8 *)outCards, 24);
 
+	if (RoundOver(outCardsPlayerId))
+	{
+		_gameStatus = GAME_STATUS_ROUNDOVERING;
+		return;
+	}
+
 	if (outCardsPlayerId == _left->getid())
 	{
 		sOutCardAi->OutCard(this);
 		_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
 		_aiGameStatus = AI_GAME_STATUS_OUT_CARD;
 	}
+}
+
+bool Player::RoundOver(uint32 outCardPlayerId)
+{
+	Player *outCardPlayer = (getid() == outCardPlayerId ? this : (_left->getid() == outCardPlayerId ? _left : _right));
+
+	return 0 == sOutCardAi->getCardsNumber(outCardPlayer->_cards);
 }
 
 void Player::aiHandlLogout(WorldPacket* packet)

@@ -132,9 +132,9 @@ void Player::handleOutCard()
 	data << uint32(_cardType);
 	data.append(_outCards, 24);
 
+	sOutCardAi->updateCardsFace(_cards, _outCards);
 	senToAll(&data,true);
 	_gameStatus = GAME_STATUS_OUT_CARDED;
-	sOutCardAi->updateCardsFace(_cards, _outCards);
 }
 
 void Player::handleRoundOver()

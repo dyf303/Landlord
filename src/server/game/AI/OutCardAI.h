@@ -13,12 +13,12 @@ public:
 	}
 	void OutCard(Player *player);
 	void updateCardsFace(uint8* SelfCard, uint8* OutCard);
+	uint32 getCardsNumber(uint8 * cards);
 
 private:
 	OutCardAi();
 	~OutCardAi();
 	
-	uint32 getCardsNumber(uint8 * cards);
 	void resetCards(uint8 * cards);
 	void rearrangeCards(uint8* SelfCards, uint8 Card);
 };

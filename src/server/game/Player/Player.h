@@ -176,6 +176,7 @@ public:
 	void aiHandleGrabLandlord(WorldPacket* packet);
 	void aiHandleOutCards(WorldPacket* packet);
 	void aiHandlLogout(WorldPacket* packet);
+	bool RoundOver(uint32 outCardPlayerId);
 private:
 	WorldSession* _session;
 	int32 _expiration;
