@@ -184,7 +184,6 @@ void Player::handLogOut()
 	data << logoutStatus;
 
 	senToAll(&data,true);
-	//_gameStatus = GAME_STATUS_LOG_OUTED;
 
 	if (logoutStatus == 4)
 	{

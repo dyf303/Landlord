@@ -33,9 +33,9 @@ Player * AiPlayerPool::getAiPlayer(uint32 roomid)
 		_aiPlayerList.push_back(player);
 	}
 
-	Player *player = _aiPlayerList.back();
+	Player *player = _aiPlayerList.front();
 		
-	_aiPlayerList.pop_back();
+	_aiPlayerList.pop_front();
 	
 	configureAiPlayer(player, roomid);
 	printf("getAiPlayer: %d,now ai count: %d\n", player->getid(),_aiPlayerList.size());
