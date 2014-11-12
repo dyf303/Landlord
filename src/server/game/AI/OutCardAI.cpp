@@ -70,6 +70,40 @@ void OutCardAi::rearrangeCards(uint8* selfCards, uint8 cCard)
 	}
 }
 
+void OutCardAi::arraggeCard(uint8 cards[], uint32 num)
+{
+	int32 iIdx = 0;
+	uint8 tmpCards[24];
+	memcpy(tmpCards, cards, sizeof(tmpCards));
+	memset(cards, CARD_TERMINATE, num);
+	for (; iIdx < num; iIdx++)
+	{
+		insertCard(cards, tmpCards[iIdx], iIdx);
+	}
+}
+
+void OutCardAi::insertCard(uint8 cards[], uint8 card, uint32 cardSortNum)
+{
+	int iIdx = cardSortNum - 1;
+
+	for (; iIdx >= 0; iIdx--)
+	{
+		if ((cards[iIdx] & 0x0f) > (card & 0x0f))
+		{
+			cards[iIdx + 1] = cards[iIdx];
+		}
+		else
+		{
+			break;
+		}
+	}
+	cards[iIdx + 1] = card;
+}
+
+/*
+ * out card logic
+ */
+
 CardType OutCardAi::getPlayOutCardFirst(Player *player)
 {
 	/// 如果我是地主

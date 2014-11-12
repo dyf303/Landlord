@@ -150,9 +150,7 @@ void Player::handleGrabLandlord()
 	_gameStatus = GAME_STATUS_GRABED_LAND_LORD;
 	if (getLandlordId() == getid())
 	{
-		setCurOutCardPlayer(this);
-		_left->setCurOutCardPlayer(this);
-		_right->setCurOutCardPlayer(this);
+		arraggeCard();
 		_gameStatus = GAME_STATUS_START_OUT_CARD;
 	}
 }
@@ -252,6 +250,17 @@ void Player::notifyOther()
 		_right->_left = nullptr;
 }
 
+void Player::arraggeCard()
+{
+	memcpy(_cards + CARD_NUMBER, _baseCards, BASIC_CARD);
+	sOutCardAi->arraggeCard(_cards, CARD_NUMBER + BASIC_CARD);
+	sOutCardAi->arraggeCard(_left->_cards, CARD_NUMBER);
+	sOutCardAi->arraggeCard(_right->_cards, CARD_NUMBER);
+	setCurOutCardPlayer(this);
+	_left->setCurOutCardPlayer(this);
+	_right->setCurOutCardPlayer(this);
+}
+
 void Player::senToAll(WorldPacket* packet,bool bSelf/* = false*/)
 {
 	if (bSelf)
@@ -319,10 +328,6 @@ int32 Player::getLandlordId()
 
 void Player::resetGame()
 {
-	//if (getPlayerType() & PLAYER_TYPE_AI)
-	//	setGameStatus(GAME_STATUS_LOG_OUTED);
-	//else
-	//	setGameStatus(GAME_STATUS_WAIT_START);
 	if (getPlayerType() & PLAYER_TYPE_USER)
 		_queueFlags = QUEUE_FLAGS_NULL;
 
@@ -461,8 +466,8 @@ void Player::addPlayer(Player *player)
 
 void Player::dealCards(uint8 * cards, uint8 * baseCards)
 {
-	memcpy(_cards, cards, 17);
-	memcpy(_baseCards, baseCards, 3/*sizeof(_baseCards)*/);
+	memcpy(_cards, cards, CARD_NUMBER);
+	memcpy(_baseCards, baseCards, BASIC_CARD);
 
 	_gameStatus = GAME_STATUS_DEALING_CARD;
 }

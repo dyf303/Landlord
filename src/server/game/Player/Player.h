@@ -6,7 +6,7 @@
 
 #define CARD_TERMINATE   100
 #define CARD_NUMBER      17
-#define BASIC_CARD        7
+#define BASIC_CARD        3
 
 class WorldSession;
 
@@ -177,6 +177,7 @@ public:
 	void handleRoundOver();
 	void handLogOut();
 	void notifyOther();
+	void arraggeCard();
 
 	void senToAll(WorldPacket* packet,bool bSelf = false);
 	void sendPacket(WorldPacket* packet);
@@ -193,7 +194,7 @@ private:
 	int32 _expiration;
 	int32 _aiDelay;
 	uint8 _cards[24];	
-	uint8 _baseCards[BASIC_CARD];
+	uint8 _baseCards[7];
 	uint32 _roomid;
 	Player *_left, *_right,*_curOutCardsPlayer;
 	AtQueueFlags _queueFlags;
