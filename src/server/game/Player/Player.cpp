@@ -18,8 +18,11 @@ void Player::initPlayer()
 	_roomid = 0; 
 	_left = nullptr; 
 	_right = nullptr;
+	_curOutCardsPlayer = nullptr;
 	_queueFlags = QUEUE_FLAGS_NULL;
 	_playerType = PLAYER_TYPE_USER;
+	_cardType = CARD_TYPE_PASS;
+	_curOutCardType = CARD_TYPE_PASS;
 	_start= false;
 	_defaultGrabLandlordPlayerId= 0;
 	_grabLandlordScore= -1;
@@ -28,10 +31,14 @@ void Player::initPlayer()
 	_winGold = 0;
 	_aiGameStatus = AI_GAME_STATUS_NULL;
 
-	for (int i = 0; i < CARD_NUMBER; ++i)
-		_cards[i] = CARD_TERMINATE;
 	for (int i = 0; i < BASIC_CARD; ++i)
 		_baseCards[i] = CARD_TERMINATE;
+	for (int i = 0; i < 24; ++i)
+	{
+		_outCards[i] = CARD_TERMINATE;
+		_curOutCards[i] = CARD_TERMINATE;
+		_cards[i] = CARD_TERMINATE;
+	}
 
 	_expiration = sWorld->getIntConfig(CONFIG_WAIT_TIME);
 	_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
@@ -142,8 +149,11 @@ void Player::handleGrabLandlord()
 	senToAll(&data,true);
 	_gameStatus = GAME_STATUS_GRABED_LAND_LORD;
 	if (getLandlordId() == getid())
+	{
+		_left->setCurOutCardPlayer(this);
+		_right->setCurOutCardPlayer(this);
 		_gameStatus = GAME_STATUS_START_OUT_CARD;
-
+	}
 }
 
 void Player::handleOutCard()
@@ -155,7 +165,8 @@ void Player::handleOutCard()
 	data.append(_outCards, 24);
 
 	sOutCardAi->updateCardsFace(_cards, _outCards);
-	senToAll(&data,true);
+	UpdateCurOutCardsInfo(_cardType, _outCards, this, true);
+	senToAll(&data,true);	
 	_gameStatus = GAME_STATUS_OUT_CARDED;
 	_right->setGameStatus(GAME_STATUS_START_OUT_CARD);
 }
@@ -172,7 +183,13 @@ void Player::handleRoundOver()
 	sendPacket(&data);
 	_gameStatus = GAME_STATUS_ROUNDOVERED;
 
-	resetGame();
+	if (_left->getGameStatus() == GAME_STATUS_ROUNDOVERED &&
+		_right->getGameStatus() == GAME_STATUS_ROUNDOVERED)
+	{
+		resetGame();
+		_left->resetGame();
+		_right->resetGame();
+	}	  
 }
 
 void Player::handLogOut()
@@ -209,6 +226,21 @@ void Player::handLogOut()
 	if (_playerType == PLAYER_TYPE_USER)
 		GetSession()->setPlayer(nullptr);
 	_gameStatus = GAME_STATUS_LOG_OUTED;
+}
+
+void Player::UpdateCurOutCardsInfo(CardType cardType, uint8 * outCards, Player *outCardsPlayer, bool updateOther/* = false*/)
+{
+	if (cardType != CARD_TYPE_PASS)
+	{
+		memcpy(_curOutCards, outCards, sizeof(_curOutCards));
+		_curOutCardType = cardType;
+		_curOutCardsPlayer = outCardsPlayer;
+		if (updateOther)
+		{
+			_left->UpdateCurOutCardsInfo(cardType, outCards, outCardsPlayer);
+			_right->UpdateCurOutCardsInfo(cardType, outCards, outCardsPlayer);
+		}
+	}
 }
 
 void Player::notifyOther()
@@ -286,15 +318,8 @@ int32 Player::getLandlordId()
 
 void Player::resetGame()
 {
-	if (_left->getGameStatus() == GAME_STATUS_OUT_CARDED && _right->getGameStatus() == GAME_STATUS_OUT_CARDED)
-	{
-		if (this->getPlayerType() & PLAYER_TYPE_AI)
-			this->setGameStatus(GAME_STATUS_LOG_OUTED);
-		if (_left->getPlayerType() & PLAYER_TYPE_AI)
-			_left->setGameStatus(GAME_STATUS_LOG_OUTED);
-		if (_right->getPlayerType() & PLAYER_TYPE_AI)
-			_right->setGameStatus(GAME_STATUS_LOG_OUTED);
-	}
+	if (getPlayerType() & PLAYER_TYPE_AI)
+		setGameStatus(GAME_STATUS_LOG_OUTED);
 
 	for (int i = 0; i < CARD_NUMBER; ++i)
 		_cards[i] = CARD_TERMINATE;
@@ -432,7 +457,7 @@ void Player::addPlayer(Player *player)
 
 void Player::dealCards(uint8 * cards, uint8 * baseCards)
 {
-	memcpy(_cards, cards, sizeof(_cards));
+	memcpy(_cards, cards, 17);
 	memcpy(_baseCards, baseCards, 3/*sizeof(_baseCards)*/);
 
 	_gameStatus = GAME_STATUS_DEALING_CARD;

@@ -1,6 +1,5 @@
 #include "OutCardAI.h"
 
-#include "Player.h"
 OutCardAi::OutCardAi()
 {
 }
@@ -27,49 +26,47 @@ void OutCardAi::resetCards(uint8 * cards)
 
 void OutCardAi::OutCard(Player *player)
 {
-	/// test
-	if (player->getLandlordId() == player->getid() && getCardsNumber(player->_cards) == 20
-		|| (player->_left->_cardType == CARD_TYPE_PASS && player->_right->_cardType == CARD_TYPE_PASS))
+	player->_cardType = player->_curOutCardType;
+	memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+
+	if (player->_curOutCardsPlayer == player)
 	{
-		resetCards(player->_outCards);
-		player->_outCards[0] = player->_cards[0];
-		player->_cardType = CARD_TYPE_SINGLE;
+		player->_cardType = getPlayOutCardFirst(player);
 	}
 	else
 	{
-		resetCards(player->_outCards);
-		player->_cardType = CARD_TYPE_PASS;
+		getPlayOutCard(player, &player->_cardType);
 	}
 }
 
-void OutCardAi::updateCardsFace(uint8* SelfCards, uint8* OutCards)
+void OutCardAi::updateCardsFace(uint8* selfCards, uint8* outCards)
 {
 	int32 iCardIdx = 0;
-	if (*OutCards == CARD_TERMINATE)
+	if (*outCards == CARD_TERMINATE)
 	{
 		return ;
 	}
-	while (OutCards[iCardIdx] != CARD_TERMINATE)
+	while (outCards[iCardIdx] != CARD_TERMINATE)
 	{
-		uint8 cTmpCard = OutCards[iCardIdx];
-		rearrangeCards(SelfCards, cTmpCard);
+		uint8 cTmpCard = outCards[iCardIdx];
+		rearrangeCards(selfCards, cTmpCard);
 		iCardIdx++;
 	}
 }
 
-void OutCardAi::rearrangeCards(uint8* SelfCards, uint8 cCard)
+void OutCardAi::rearrangeCards(uint8* selfCards, uint8 cCard)
 {
 	int32 iCardIdx = 0;
-	for (; SelfCards[iCardIdx] != CARD_TERMINATE; iCardIdx++)
+	for (; selfCards[iCardIdx] != CARD_TERMINATE; iCardIdx++)
 	{
-		if (SelfCards[iCardIdx] == cCard)
+		if (selfCards[iCardIdx] == cCard)
 		{
 			break;
 		}
 	}
-	for (; SelfCards[iCardIdx] != CARD_TERMINATE; iCardIdx++)
+	for (; selfCards[iCardIdx] != CARD_TERMINATE; iCardIdx++)
 	{
-		SelfCards[iCardIdx] = SelfCards[iCardIdx + 1];
+		selfCards[iCardIdx] = selfCards[iCardIdx + 1];
 	}
 }
 
@@ -140,7 +137,7 @@ CardType OutCardAi::getPlayOutCardFirst(Player *player)
 
 	/// 获得我对方自家手中剩余的牌数(方便送走自家)
 	/// 获得自家在桌子上的位置
-	Player *their = (player->getPlayerGameType() == player->_left->getPlayerGameType ? player->_left : player->_right);
+	Player *their = (player->getPlayerGameType() == player->_left->getPlayerGameType() ? player->_left : player->_right);
 
 	/// 获得对方自家手中剩余牌数
 	int32 iCardsSameFamilyNum = getCardsNumber(their->_cards);
@@ -217,12 +214,12 @@ CardType OutCardAi::getPlayOutCardFirst(Player *player)
 	return getPlayOutCardFirst(player->_cards, player->_outCards);
 }
 
-CardType OutCardAi::getPlayOutCardFirst(uint8 SelfCards[], uint8 OutCards[])
+CardType OutCardAi::getPlayOutCardFirst(uint8 selfCards[], uint8 outCards[])
 {
-	CardType cardType = 0;
+	CardType cardType = CARD_TYPE_PASS;
 
-	int CardsNum = 0;
-	while (SelfCards[CardsNum] != CARD_TERMINATE)
+	int32 CardsNum = 0;
+	while (selfCards[CardsNum] != CARD_TERMINATE)
 	{
 		CardsNum++;
 	}
@@ -231,68 +228,68 @@ CardType OutCardAi::getPlayOutCardFirst(uint8 SelfCards[], uint8 OutCards[])
 	{
 		if (CardsNum == 10)
 		{
-			if (getAirPlane(SelfCards, OutCards, 0, CardsNum) >= 0)
+			if (getAirPlane(selfCards, outCards, 0, CardsNum) >= 0)
 			{
 				return CARD_TYPE_AIRPLANE;
 			}
-			if (getPairProgression(SelfCards, OutCards, 0, CardsNum) >= 0)
+			if (getPairProgression(selfCards, outCards, 0, CardsNum) >= 0)
 			{
 				return CARD_TYPE_PAIR_PROGRESSION;
 			}
-			if (getSingleProgression(SelfCards, OutCards, 0, CardsNum) >= 0)
+			if (getSingleProgression(selfCards, outCards, 0, CardsNum) >= 0)
 			{
 				return CARD_TYPE_SINGLE_PROGRESSION;
 			}
 		}
 		if (CardsNum >= 9)
 		{
-			if (getTripleProgression(SelfCards, OutCards, 0, 9) >= 0)
+			if (getTripleProgression(selfCards, outCards, 0, 9) >= 0)
 			{
 				return CARD_TYPE_TRIPLE_PROGRESSION;
 			}
-			if (getSingleProgression(SelfCards, OutCards, 0, 9) >= 0)
+			if (getSingleProgression(selfCards, outCards, 0, 9) >= 0)
 			{
 				return CARD_TYPE_SINGLE_PROGRESSION;
 			}
 		}
 		if (CardsNum >= 8)
 		{
-			if (getAirPlane(SelfCards, OutCards, 0, 8) >= 0)
+			if (getAirPlane(selfCards, outCards, 0, 8) >= 0)
 			{
 				return CARD_TYPE_AIRPLANE;
 			}
-			if (getPairProgression(SelfCards, OutCards, 0, 8) >= 0)
+			if (getPairProgression(selfCards, outCards, 0, 8) >= 0)
 			{
 				return CARD_TYPE_PAIR_PROGRESSION;
 			}
-			if (getSingleProgression(SelfCards, OutCards, 0, 8) >= 0)
+			if (getSingleProgression(selfCards, outCards, 0, 8) >= 0)
 			{
 				return CARD_TYPE_SINGLE_PROGRESSION;
 			}
 		}
 		if (CardsNum >= 6)
 		{
-			if (getTripleProgression(SelfCards, OutCards, 0, 6) >= 0)
+			if (getTripleProgression(selfCards, outCards, 0, 6) >= 0)
 			{
 				return CARD_TYPE_TRIPLE_PROGRESSION;
 			}
-			if (getPairProgression(SelfCards, OutCards, 0, 6) >= 0)
+			if (getPairProgression(selfCards, outCards, 0, 6) >= 0)
 			{
 				return CARD_TYPE_PAIR_PROGRESSION;
 			}
-			if (getSingleProgression(SelfCards, OutCards, 0, 6) >= 0)
+			if (getSingleProgression(selfCards, outCards, 0, 6) >= 0)
 			{
 				return CARD_TYPE_SINGLE_PROGRESSION;
 			}
 		}
 		if (CardsNum >= 5)
 		{
-			if (getSingleProgression(SelfCards, OutCards, 0, 5) >= 0)
+			if (getSingleProgression(selfCards, outCards, 0, 5) >= 0)
 			{
 				return CARD_TYPE_SINGLE_PROGRESSION;
 			}
 
-			if (getTripleWithTwo(SelfCards, OutCards, 0, 5) >= 0)
+			if (getTripleWithTwo(selfCards, outCards, 0, 5) >= 0)
 			{
 				return CARD_TYPE_TRIPLE_TWO;
 			}
@@ -300,63 +297,63 @@ CardType OutCardAi::getPlayOutCardFirst(uint8 SelfCards[], uint8 OutCards[])
 		}
 		if (CardsNum >= 4)
 		{
-			if (getTripleWithOne(SelfCards, OutCards, 0, 4) >= 0)
+			if (getTripleWithOne(selfCards, outCards, 0, 4) >= 0)
 			{
 				return CARD_TYPE_TRIPLE_ONE;
 			}
 		}
 	}
-	if ((SelfCards[0] & 0x0f) == 13 && (SelfCards[1] & 0x0f) == 14 && SelfCards[2] == CARD_TERMINATE)
+	if ((selfCards[0] & 0x0f) == 13 && (selfCards[1] & 0x0f) == 14 && selfCards[2] == CARD_TERMINATE)
 	{
-		OutCards[0] = SelfCards[0];
-		OutCards[1] = SelfCards[1];
+		outCards[0] = selfCards[0];
+		outCards[1] = selfCards[1];
 		return CARD_TYPE_ROCKET;
 	}
 
-	int iIdx = 0;
+	int32 iIdx = 0;
 
-	while (SelfCards[iIdx] != CARD_TERMINATE)
+	while (selfCards[iIdx] != CARD_TERMINATE)
 	{
-		if (SelfCards[iIdx + 1] == CARD_TERMINATE)
+		if (selfCards[iIdx + 1] == CARD_TERMINATE)
 		{
-			OutCards[0] = SelfCards[iIdx];
+			outCards[0] = selfCards[iIdx];
 			cardType = CARD_TYPE_SINGLE;
 			break;
 		}
-		else if ((SelfCards[iIdx] & 0x0f) != (SelfCards[iIdx + 1] & 0x0f))
+		else if ((selfCards[iIdx] & 0x0f) != (selfCards[iIdx + 1] & 0x0f))
 		{
-			OutCards[0] = SelfCards[iIdx];
+			outCards[0] = selfCards[iIdx];
 			cardType = CARD_TYPE_SINGLE;
 			break;
 		}
-		else if (SelfCards[iIdx + 2] == CARD_TERMINATE)
+		else if (selfCards[iIdx + 2] == CARD_TERMINATE)
 		{
-			OutCards[0] = SelfCards[iIdx];
-			OutCards[1] = SelfCards[iIdx + 1];
+			outCards[0] = selfCards[iIdx];
+			outCards[1] = selfCards[iIdx + 1];
 			cardType = CARD_TYPE_PAIR;
 			break;
 		}
-		else if ((SelfCards[iIdx] & 0x0f) != (SelfCards[iIdx + 2] & 0x0f))
+		else if ((selfCards[iIdx] & 0x0f) != (selfCards[iIdx + 2] & 0x0f))
 		{
-			OutCards[0] = SelfCards[iIdx];
-			OutCards[1] = SelfCards[iIdx + 1];
+			outCards[0] = selfCards[iIdx];
+			outCards[1] = selfCards[iIdx + 1];
 			cardType = CARD_TYPE_PAIR;
 			break;
 		}
-		else if (SelfCards[iIdx + 3] == CARD_TERMINATE)
+		else if (selfCards[iIdx + 3] == CARD_TERMINATE)
 		{
-			OutCards[0] = SelfCards[iIdx];
-			OutCards[1] = SelfCards[iIdx + 1];
-			OutCards[2] = SelfCards[iIdx + 2];
+			outCards[0] = selfCards[iIdx];
+			outCards[1] = selfCards[iIdx + 1];
+			outCards[2] = selfCards[iIdx + 2];
 			cardType = CARD_TYPE_TRPILE;
 			break;
 		}
-		else if ((SelfCards[iIdx] & 0x0f) != (SelfCards[iIdx + 3] & 0x0f))
+		else if ((selfCards[iIdx] & 0x0f) != (selfCards[iIdx + 3] & 0x0f))
 		{
-			OutCards[0] = SelfCards[iIdx];
-			OutCards[1] = SelfCards[iIdx + 1];
-			OutCards[2] = SelfCards[iIdx + 2];
-			int iResult = getSingleCard(SelfCards, OutCards + 3, 0);
+			outCards[0] = selfCards[iIdx];
+			outCards[1] = selfCards[iIdx + 1];
+			outCards[2] = selfCards[iIdx + 2];
+			int32 iResult = getSingleCard(selfCards, outCards + 3, 0);
 			if (iResult >= 0)
 			{
 				cardType = CARD_TYPE_TRIPLE_ONE;
@@ -364,16 +361,16 @@ CardType OutCardAi::getPlayOutCardFirst(uint8 SelfCards[], uint8 OutCards[])
 			}
 			else
 			{
-				iResult = getPairCard(SelfCards, OutCards + 3, 0);
+				iResult = getPairCard(selfCards, outCards + 3, 0);
 				if (iResult >= 0)
 				{
-					CardType = CARD_TYPE_TRIPLE_TWO;
+					cardType = CARD_TYPE_TRIPLE_TWO;
 
 					break;
 				}
 				else
 				{
-					CardType = CARD_TYPE_TRPILE;
+					cardType = CARD_TYPE_TRPILE;
 					break;
 				}
 			}
@@ -383,24 +380,450 @@ CardType OutCardAi::getPlayOutCardFirst(uint8 SelfCards[], uint8 OutCards[])
 			iIdx += 4;
 		}
 	}
-	if (SelfCards[iIdx] != CARD_TERMINATE)
+	if (selfCards[iIdx] != CARD_TERMINATE)
 	{
 		return cardType;
 	}
 	else
 	{
-		OutCards[0] = SelfCards[0];
-		OutCards[1] = SelfCards[1];
-		OutCards[2] = SelfCards[2];
-		OutCards[3] = SelfCards[3];
+		outCards[0] = selfCards[0];
+		outCards[1] = selfCards[1];
+		outCards[2] = selfCards[2];
+		outCards[3] = selfCards[3];
 		return CARD_TYPE_BOMB;
 	}
 }
 
-CardType OutCardAi::IsSeriesCard(uint8 SelfCards[], uint8 OutCards[])
+int32 OutCardAi::getPlayOutCard(Player * player,CardType *cardType)
+{
+	Player *nextPlayer = player->_right;
+	/// 下家是对家
+	if (player->getPlayerGameType() != nextPlayer->getPlayerGameType())
+	{
+		/// 下家手中剩余牌数
+		int32 iUserNextCardsNum = getCardsNumber(nextPlayer->_cards);
+
+		/// 当前打出的牌面的牌数
+		int32 iCardsRecvNum = getCardsNumber(player->_curOutCards);
+		/// 当前出牌用户，剩余的牌数
+		int32 iCardsCurNum = getCardsNumber(player->_curOutCardsPlayer->_cards);
+
+		/// 当前我的牌面的牌数
+		int32 iCardsSelfNum = getCardsNumber(player->_cards);
+
+		/// 如果当前牌面数和地主手里的剩余牌数相等(则要出大牌，别放走对家)
+		if (iUserNextCardsNum == iCardsRecvNum)
+		{
+			/// 当前牌面是单支
+			if (1 == iCardsRecvNum || 2 == iCardsRecvNum || 3 == iCardsRecvNum)
+			{
+
+				/// 当前已经打出牌的用户是自家,且其手中的牌小于3张
+				if (player->getPlayerGameType() == player->_curOutCardsPlayer->getPlayerGameType()
+					&& iCardsCurNum < 3)
+				{
+					memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+				}
+				else if (CARD_TYPE_PASS != playOutMaxCardsByType(player->_outCards, player->_outCards, player->_curOutCardType, iCardsSelfNum))
+				{
+					/// 当前收到的牌的主牌信息
+					int32 iMainCardNumRecv = (getMainCardFromRecv(player->_curOutCardType, player->_curOutCards, iCardsRecvNum) & 0x0f);
+
+					/// 当前自己打出的牌的主牌信息
+					int32 iMainCardNumSelf = (getMainCardFromRecv(player->_curOutCardType, player->_outCards, iCardsRecvNum) & 0x0f);
+					if (iMainCardNumSelf > iMainCardNumRecv && iMainCardNumRecv != 61)
+					{
+						return 1;
+					}
+				}
+			}
+		}
+	}
+
+	uint8 cardsCurTmp[80];
+	memset(cardsCurTmp, 0, sizeof(cardsCurTmp));
+
+	cardsCurTmp[79] = 0;
+
+	/// 获得本局我要打出的牌信息
+	memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+
+	bool bSplitCard = bSplitCards(player);//是否要拆牌
+
+	int32 iMainCardsIdx = getPlayOutCard(player->_curOutCardType, player->_curOutCards
+		, player->_cards, player->_outCards, bSplitCard);
+
+	if (CARD_TERMINATE == player->_outCards[0])
+	{
+		memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+		*cardType = CARD_TYPE_PASS;
+		return 1;
+	}
+
+	getPlayOutCardType(player->_outCards, cardType);
+	/// 如果我是一手牌()
+	/// 获得自家手中剩余牌数
+	int32 iCardsSelfNum = getCardsNumber(player->_cards);
+
+	/// 如果手中牌全部可以打住(一手出完，赢了)
+	if (iCardsSelfNum == getCardsNumber(player->_outCards))
+	{
+		/// 正常出牌，赢了
+	}
+	else
+	{
+		/// 当前已经打出牌的用户是自家
+		if (player->getPlayerGameType() == player->_curOutCardsPlayer->getPlayerGameType())
+		{
+			//当前出牌用户手中的牌数
+			int32 iCardCurNumber = getCardsNumber(player->_curOutCardsPlayer->_cards);
+			/// 当前打出的牌面的牌数
+			int32 iCardsRecvNum = getCardsNumber(player->_curOutCards);
+
+			//如果自家打出的牌和他手中的牌数一样或者手中只剩1,2张牌，我不出牌
+			if (iCardCurNumber == iCardsRecvNum || iCardCurNumber == 1 || iCardCurNumber == 2)
+			{
+				memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+				*cardType = CARD_TYPE_PASS;
+			}
+			/// 如果我的主牌是炸弹
+			if (CARD_TYPE_ROCKET == *cardType || CARD_TYPE_BOMB == *cardType)
+			{
+				// 			/// 获得自家手中剩余牌数
+				// 			int32 iCardsSelfNum = getCardsNum(pkQueueDeskDataNode->pcCardsTotal[iQueueUserIdx]);
+				if (4 == iCardsSelfNum || 2 == iCardsSelfNum)//???主牌是火箭，手里有四张牌
+				{
+					/// 正常出牌，赢了
+				}
+				else
+				{
+					/// 如果是火箭(双王)
+					if (CARD_TYPE_ROCKET == *cardType)
+					{
+						if (3 == iCardsSelfNum)
+						{
+							/// 正常出牌，赢了
+						}
+						else
+						{
+							/// 我不出牌 pass
+							memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+							*cardType = CARD_TYPE_PASS;
+						}
+					}
+					else /// 我不出牌 pass
+					{
+						memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+						*cardType = CARD_TYPE_PASS;
+					}
+				}
+			}
+			else /// 如果我的主牌不是炸弹
+			{
+				/// 获得我的主牌信息
+				int32 iMainCardsNumSelf = (player->_cards[iMainCardsIdx] & 0x0f);
+
+				/// 获得当前牌面的主牌信息
+				int32 iCardsRecvNum = getCardsNumber(player->_curOutCards);
+				int32 iMainCardNumRecv = (getMainCardFromRecv(player->_curOutCardType, player->_curOutCards, iCardsRecvNum) & 0x0f);
+
+				// 			/// 获得自己手中剩余牌数
+				// 			int32 iCardsSelfNum = getCardsNum(pkQueueDeskDataNode->pcCardsTotal[iQueueUserIdx]);
+
+				/// 如果自己手中牌数量和打出的牌数量一样
+				if (iCardsRecvNum == iCardsSelfNum)
+				{
+					/// 正常出牌，赢了
+				}
+				else
+				{
+					if (CARD_TYPE_SINGLE == player->_curOutCardType)/// 单支
+					{
+						///  当前牌面主牌 >= A
+						if (11 <= iMainCardNumRecv)
+						{
+							/// 我不出牌 pass
+							memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+							*cardType = CARD_TYPE_PASS;
+						}
+						else ///  当前牌面主牌 < A
+						{
+							/// 我的主牌 <= A
+							if (11 >= iMainCardsNumSelf)
+							{
+								/// 正常出牌
+							}
+							else /// 我的主牌 > A
+							{
+								/// 我不出牌 pass
+								memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+								*cardType = CARD_TYPE_PASS;
+							}
+						}
+					}
+					else if (CARD_TYPE_PAIR == player->_curOutCardType) /// 对子
+					{
+						/// 当前牌面主牌 >= K
+						if (10 <= iMainCardNumRecv)
+						{
+							/// 我不出牌 pass
+							memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+							*cardType = CARD_TYPE_PASS;
+						}
+						else /// 当前牌面主牌 < K
+						{
+							/// 我的主牌 < K
+							if (10 > iMainCardsNumSelf)
+							{
+								/// 正常出牌
+							}
+							else /// 我的主牌 >= K
+							{
+								/// 我不出牌 pass
+								memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+								*cardType = CARD_TYPE_PASS;
+							}
+						}
+					}
+					else if (CARD_TYPE_TRPILE == player->_curOutCardType
+						|| CARD_TYPE_TRIPLE_ONE == player->_curOutCardType
+						|| CARD_TYPE_TRIPLE_TWO == player->_curOutCardType) /// 三支
+					{
+						/// 当前牌面主牌 >= K
+						if (10 <= iMainCardNumRecv)
+						{
+							/// 我不出牌 pass
+							memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+							*cardType = CARD_TYPE_PASS;
+						}
+						else /// 当前牌面主牌 < K
+						{
+							/// 我的主牌 < J
+							if (8 > iMainCardsNumSelf)
+							{
+								/// 正常出牌
+							}
+							else /// 我的主牌 >= J
+							{
+								/// 我不出牌 pass
+								memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+								*cardType = CARD_TYPE_PASS;
+							}
+						}
+					}
+					else /// 当前牌面其它牌型
+					{
+						/// 我不出牌 pass
+						memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+						*cardType = CARD_TYPE_PASS;
+					}
+				}
+			}
+		}
+		else /// 当前已经打出牌的用户是对家
+		{
+			///DEBUG(4, "User PlayOutCard  303......\n");
+			/// 获得当前牌面的主牌信息
+			int32 iCardsRecvNum = getCardsNumber(player->_curOutCards);
+			int32 iMainCardNumRecv = getMainCardFromRecv(player->_curOutCardType, player->_curOutCards, iCardsRecvNum);
+
+			/// 炸弹
+			if (CARD_TYPE_ROCKET == player->_curOutCardType
+				|| CARD_TYPE_BOMB == player->_curOutCardType)
+			{
+				/// 我正常出牌(我有炸弹就要出)
+			}
+			else /// 当前牌面其它牌型
+			{
+				/// 如果我的主牌是炸弹
+				if (CARD_TYPE_ROCKET == *cardType || CARD_TYPE_BOMB == *cardType)
+				{
+					/// 如果对家手中就剩了1，2张牌，我就出牌(防止对家剩一手牌走掉)
+					int32 iUserCardsNumEnemy = getCardsNumber(player->_curOutCardsPlayer->_cards);
+					if (1 == iUserCardsNumEnemy || 2 == iUserCardsNumEnemy)
+					{
+						/// 我正常出牌(炸弹就要出)
+					}
+					else
+					{
+						/// 如果我下家是自家
+						if (player->getPlayerGameType() == player->_right->getPlayerGameType())
+						{
+							/// 获得下家手中牌的个数
+							int32 iCardsSameFamilyNum = getCardsNumber(player->_right->_cards);
+
+							/// 如果我下家的手中牌数少于当前打出的牌数,(我能打就要打)
+							if (iCardsSameFamilyNum < iCardsRecvNum)
+							{
+								/// 我正常出牌(炸弹就要出)
+							}
+							else /// 我不出牌 pass
+							{
+								memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+								*cardType = CARD_TYPE_PASS;
+							}
+						}
+						else /// 如果我下家是对家
+						{
+							if (iUserCardsNumEnemy > 10)///如果对家的牌大于10张，不出牌
+							{
+								memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
+								*cardType = CARD_TYPE_PASS;
+							}
+							/// 我正常出牌(炸弹就要出)
+						}
+					}
+				}
+				else /// 如果我的主牌不是炸弹
+				{
+					////DEBUG(4, "User PlayOutCard  306......\n");
+					/// 我正常出牌
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+int OutCardAi::getPlayOutCard(CardType cardType, uint8 recvCard[], uint8 selfCards[], uint8 outCards[], bool bSplitCard)
+{
+	int iSelfIdx = 0;
+	int iRecvIdx = 0;
+	int iCardsRecvNum = 0;
+	int iMainCard;
+	int	iResult = -1;///>=0 表示得到的牌的起始索引
+
+	int iCardsNum = 0;
+	while (selfCards[iCardsNum] != CARD_TERMINATE)
+	{
+		iCardsNum++;
+	}
+	if (cardType == CARD_TYPE_ROCKET)
+	{
+		return iResult;
+	}
+	while (recvCard[iCardsRecvNum] != CARD_TERMINATE)
+	{
+		iCardsRecvNum++;
+	}
+	iMainCard = getMainCardFromRecv(cardType, recvCard, iCardsRecvNum);
+	for (; selfCards[iSelfIdx] != CARD_TERMINATE; iSelfIdx++)
+	{
+		if ((selfCards[iSelfIdx] & 0x0f) > (iMainCard & 0x0f))
+		{
+			break;
+		}
+	}
+
+	if ((selfCards[iSelfIdx] == CARD_TERMINATE))
+	{
+		if (cardType != CARD_TYPE_BOMB)
+		{
+			iSelfIdx = 0;
+			iResult = getBombCard(selfCards, outCards, iSelfIdx);
+			return 	iResult;
+		}
+		else
+		{
+			return iResult;
+		}
+	}
+
+	switch (cardType)
+	{
+		case CARD_TYPE_SINGLE:
+		{
+			iResult = getSingleCard(selfCards, outCards, iSelfIdx);
+
+			if (iResult == -1 && bSplitCard)//如果没有找出单张，且可以拆牌，拆出一个单张
+				iResult = forceGetSingleCard(selfCards, outCards, iSelfIdx);
+
+		}
+			break;
+		case CARD_TYPE_PAIR:
+		{
+			iResult = getPairCard(selfCards, outCards, iSelfIdx);
+
+			 if (iResult == -1 && bSplitCard)//如果没有找出对子，且可以拆牌，拆出一个对子
+			  iResult = forceGetPairCard(selfCards, outCards, iSelfIdx);
+		}
+		break;
+		case CARD_TYPE_TRPILE:
+		{
+			if (iCardsNum > 2)
+			 iResult = getTripleCard(selfCards, outCards, iSelfIdx);
+		}
+			break;
+		case CARD_TYPE_TRIPLE_ONE:
+		{
+			if (iCardsNum > 3)
+			   iResult = getTripleWithOne(selfCards, outCards, iSelfIdx, iCardsRecvNum);
+
+		}
+		break;
+		case CARD_TYPE_TRIPLE_TWO:
+		{
+			if (iCardsNum > 4)
+			   iResult = getTripleWithTwo(selfCards, outCards, iSelfIdx, iCardsRecvNum);
+		}
+			break;
+		case CARD_TYPE_SINGLE_PROGRESSION:
+		{
+			if (iCardsNum > 4)
+			  iResult = getSingleProgression(selfCards, outCards, iSelfIdx, iCardsRecvNum);
+		}
+		break;
+		case CARD_TYPE_PAIR_PROGRESSION:
+		{
+		  if (iCardsNum > 5)
+			iResult = getPairProgression(selfCards, outCards, iSelfIdx, iCardsRecvNum);
+		}
+		break;
+		case CARD_TYPE_TRIPLE_PROGRESSION:
+		{
+		 if (iCardsNum > 5)
+			  iResult = getTripleProgression(selfCards, outCards, iSelfIdx, iCardsRecvNum);
+		}
+		break;
+		case CARD_TYPE_AIRPLANE:
+		{
+		 if (iCardsNum > 7)
+		   iResult = getAirPlane(selfCards, outCards, iSelfIdx, iCardsRecvNum);
+		}
+		break;
+		case CARD_TYPE_FOUR_TWO:
+		{
+		  iResult = getBombCard(selfCards, outCards, 0);
+		}
+		case CARD_TYPE_BOMB:
+		{
+		  iResult = getBombCard(selfCards, outCards, iSelfIdx);
+		}
+		break;
+		default:
+			break;
+	}
+
+	if (iResult < 0 && cardType != CARD_TYPE_BOMB)
+	{
+		iSelfIdx = 0;
+		iResult = getBombCard(selfCards, outCards, iSelfIdx);
+	}
+	if (iResult < 0)
+	{
+		return getRocketCard(selfCards, outCards);
+	}
+	else
+	{
+		return iResult;
+	}
+}
+
+CardType OutCardAi::IsSeriesCard(uint8 selfCards[], uint8 outCards[])
 {
 	uint32 SelfCardsNum = 0;
-	while (SelfCards[SelfCardsNum] != CARD_TERMINATE)
+	while (selfCards[SelfCardsNum] != CARD_TERMINATE)
 	{
 		SelfCardsNum++;
 	}
@@ -409,127 +832,127 @@ CardType OutCardAi::IsSeriesCard(uint8 SelfCards[], uint8 OutCards[])
 	{
 		if (SelfCardsNum == 10 || SelfCardsNum == 8)
 		{
-			if (getAirPlane(SelfCards, OutCards, 0, iSelfCardsNum) >= 0)
+			if (getAirPlane(selfCards, outCards, 0, SelfCardsNum) >= 0)
 			{
 				return CARD_TYPE_AIRPLANE;
 			}
-			if (getPairProgression(SelfCards, OutCards, 0, iSelfCardsNum) >= 0)
+			if (getPairProgression(selfCards, outCards, 0, SelfCardsNum) >= 0)
 			{
 				return CARD_TYPE_PAIR_PROGRESSION;
 			}
 		}
-		if (iSelfCardsNum == 9)
+		if (SelfCardsNum == 9)
 		{
-			if (getTripleProgression(SelfCards, OutCards, 0, iSelfCardsNum) >= 0)
+			if (getTripleProgression(selfCards, outCards, 0, SelfCardsNum) >= 0)
 			{
 				return CARD_TYPE_TRIPLE_PROGRESSION;
 			}
 		}
-		if (iSelfCardsNum == 6)
+		if (SelfCardsNum == 6)
 		{
-			if (getTripleProgression(SelfCards, OutCards, 0, iSelfCardsNum) >= 0)
+			if (getTripleProgression(selfCards, outCards, 0, SelfCardsNum) >= 0)
 			{
 				return CARD_TYPE_TRIPLE_PROGRESSION;
 			}
-			if (getPairProgression(SelfCards, OutCards, 0, iSelfCardsNum) >= 0)
+			if (getPairProgression(selfCards, outCards, 0, SelfCardsNum) >= 0)
 			{
 				return CARD_TYPE_PAIR_PROGRESSION;
 			}
 		}
-		if (iSelfCardsNum >= 5)
+		if (SelfCardsNum >= 5)
 		{
-			if (getSingleProgression(SelfCards, OutCards, 0, iSelfCardsNum) >= 0)
+			if (getSingleProgression(selfCards, outCards, 0, SelfCardsNum) >= 0)
 			{
 				return CARD_TYPE_SINGLE_PROGRESSION;
 			}
-			if (iSelfCardsNum == 5)
+			if (SelfCardsNum == 5)
 			{
-				if (getTripleWithTwo(SelfCards, OutCards, 0, iSelfCardsNum) >= 0)
+				if (getTripleWithTwo(selfCards, outCards, 0, SelfCardsNum) >= 0)
 				{
 					return CARD_TYPE_TRIPLE_TWO;
 				}
 			}
 		}
-		if (iSelfCardsNum == 4)
+		if (SelfCardsNum == 4)
 		{
-			if (getTripleWithOne(SelfCards, OutCards, 0, iSelfCardsNum) >= 0)
+			if (getTripleWithOne(selfCards, outCards, 0, SelfCardsNum) >= 0)
 			{
 				return CARD_TYPE_TRIPLE_ONE;
 			}
 		}
 	}
-	return -1;
+	return CARD_TYPE_PASS;
 }
 
-CardType OutCardAi::playOutCardsNotByType(uint8 SelfCards[], uint8 OutCards[], int32 CardType, int32 SelfCardsNum)
+CardType OutCardAi::playOutCardsNotByType(uint8 selfCards[], uint8 outCards[], int32 CardType, int32 SelfCardsNum)
 {
 	switch(CardType)
 	{
 	case CARD_TYPE_SINGLE:
 		{
-			if(getTripleWithOne(SelfCards,OutCards,0,4) >= 0)
+			if(getTripleWithOne(selfCards,outCards,0,4) >= 0)
 			{
 				return CARD_TYPE_TRIPLE_ONE;
 			}
-			else if(getTripleCard(SelfCards,OutCards,0) >= 0)
+			else if(getTripleCard(selfCards,outCards,0) >= 0)
 			{
 				return CARD_TYPE_TRPILE;
 			}
-			else if(getPairCard(SelfCards,OutCards,0) >= 0)
+			else if(getPairCard(selfCards,outCards,0) >= 0)
 			{
 				return CARD_TYPE_PAIR;
 			}
 			else
 			{
-				OutCards[0]= SelfCards[SelfCardsNum -1];
+				outCards[0]= selfCards[SelfCardsNum -1];
 				return CARD_TYPE_SINGLE;
 			}
 		}
 	case CARD_TYPE_PAIR:
 		{
-			if(getTripleWithOne(SelfCards,OutCards,0,4) >= 0)
+			if(getTripleWithOne(selfCards,outCards,0,4) >= 0)
 			{
 				return CARD_TYPE_TRIPLE_ONE;
 			}
-			else if(getTripleCard(SelfCards,OutCards,0) >= 0)
+			else if(getTripleCard(selfCards,outCards,0) >= 0)
 			{
 				return CARD_TYPE_TRPILE;
 			}
 			else
 			{
-				OutCards[0]= SelfCards[0];
+				outCards[0]= selfCards[0];
 				return CARD_TYPE_SINGLE;
 			}
 		}
 	case CARD_TYPE_TRPILE:
 		{
-			if(getTripleWithOne(SelfCards,OutCards,0,4) >= 0)
+			if(getTripleWithOne(selfCards,outCards,0,4) >= 0)
 			{
 				return CARD_TYPE_TRIPLE_ONE;
 			}
-			else if(getPairCard(SelfCards,OutCards,0) >= 0)
+			else if(getPairCard(selfCards,outCards,0) >= 0)
 			{
 				return CARD_TYPE_PAIR;
 			}
 			else
 			{
-				OutCards[0]= SelfCards[0];
+				outCards[0]= selfCards[0];
 				return CARD_TYPE_SINGLE;
 			}
 		}
 	case CARD_TYPE_TRIPLE_ONE:
 		{
-			if(getTripleCard(SelfCards,OutCards,0) >= 0)
+			if(getTripleCard(selfCards,outCards,0) >= 0)
 			{
 				return CARD_TYPE_TRPILE;
 			}
-			else if(getPairCard(SelfCards,OutCards,0) >= 0)
+			else if(getPairCard(selfCards,outCards,0) >= 0)
 			{
 				return CARD_TYPE_PAIR;
 			}
 			else
 			{
-				OutCards[0]= SelfCards[0];
+				outCards[0]= selfCards[0];
 				return CARD_TYPE_SINGLE;
 			}
 		}
@@ -538,23 +961,158 @@ CardType OutCardAi::playOutCardsNotByType(uint8 SelfCards[], uint8 OutCards[], i
 	return CARD_TYPE_PASS;
 }
 
+CardType OutCardAi::playOutMaxCardsByType(uint8 selfCards[], uint8 outCards[], CardType cardType, int32 selfCardsNum)
+{
+	switch (cardType)
+	{
+		case CARD_TYPE_SINGLE:
+		{
+			 outCards[0] = selfCards[selfCardsNum - 1];
+			return CARD_TYPE_SINGLE;
+		}
+		case CARD_TYPE_PAIR:
+		{
+			 uint8 tmpCards[4];
+			 memset(tmpCards, CARD_TERMINATE, 4);
+			 int32 iCardIdx = getPairCard(selfCards, tmpCards, 0);
+			 while (iCardIdx >= 0)
+			 {
+					outCards[0] = tmpCards[0];
+				    outCards[1] = tmpCards[1];
+					iCardIdx = getPairCard(selfCards, tmpCards, iCardIdx + 2);
+			 }
+			if (outCards[0] == CARD_TERMINATE)
+				return CARD_TYPE_PASS;
+            else
+				return CARD_TYPE_PAIR;
+		}
+	    case CARD_TYPE_TRPILE:
+	    {
+			uint8 tmpCards[4];
+			memset(tmpCards, 100, 4);
+			int32 cardIdx = getTripleCard(selfCards, tmpCards, 0);
+			while (cardIdx >= 0)
+			{
+			 outCards[0] = tmpCards[0];
+			 outCards[1] = tmpCards[1];
+			 outCards[2] = tmpCards[2];
+			 cardIdx = getPairCard(selfCards, tmpCards, cardIdx + 3);
+			}
+			 if (outCards[0] == CARD_TERMINATE)
+				 return CARD_TYPE_PASS;
+            else
+                 return CARD_TYPE_TRPILE;
+	    }
+	}
+	return CARD_TYPE_PASS;
+}
+
+int32 OutCardAi::getMainCardFromRecv(CardType cardType, uint8* cardsRecv, int32 cardsRecvNum)
+{
+	switch (cardType)
+	{
+		case CARD_TYPE_PASS:
+		{
+		  return -1;
+		}
+		case CARD_TYPE_SINGLE:
+		case CARD_TYPE_PAIR:
+		case CARD_TYPE_TRPILE:
+		case CARD_TYPE_BOMB:
+		case CARD_TYPE_SINGLE_PROGRESSION:
+		case CARD_TYPE_PAIR_PROGRESSION:
+		case CARD_TYPE_TRIPLE_PROGRESSION:
+		{
+		 return cardsRecv[0];
+		}
+		case CARD_TYPE_TRIPLE_ONE:
+		{
+			return judgeTripleWithOne(cardsRecv, cardsRecvNum);
+		}
+		case CARD_TYPE_TRIPLE_TWO:
+		{
+			return judgeTripleWithTwo(cardsRecv, cardsRecvNum);
+		}
+		case CARD_TYPE_AIRPLANE:
+		{
+			return judgeAirPlane(cardsRecv, cardsRecvNum);
+		}
+		case CARD_TYPE_FOUR_TWO:
+		{
+			return judgeFourWithTwo(cardsRecv, cardsRecvNum);
+		}
+	}
+	return -1;
+}
+
+bool OutCardAi::bSplitCards(Player * player)
+{
+	//出牌用户是自家，不拆牌
+	if (player->getPlayerGameType() == player->_curOutCardsPlayer->getPlayerGameType())
+	{
+		return false;
+	}
+
+	/// 当前打出的牌面的牌数
+	int cardsRecvNum = getCardsNumber(player->_curOutCards);
+	int mainCardNumRecv = (getMainCardFromRecv(player->_curOutCardType, player->_curOutCards, cardsRecvNum) & 0x0f);
+	Player * playerNext = player->_right;
+
+	//如果对方出牌的主牌小于10，且下家是自家，也不拆牌
+	if (mainCardNumRecv < 7
+		&& player->getPlayerGameType() == playerNext->getPlayerGameType())
+	{
+		return false;
+	}
+	return true;
+}
+
+int32 OutCardAi::getPlayOutCardType(uint8 outCards[], CardType* cardType)
+{
+	int	iCardCount = 0;
+	while (CARD_TERMINATE != outCards[iCardCount])
+	{
+		iCardCount++;
+	}
+
+	if (iCardCount == 2)
+	{
+		if (((outCards[0] & 0x0f) == 13 && (outCards[1] & 0x0f) == 14)
+			|| ((outCards[1] & 0x0f) == 13 && (outCards[0] & 0x0f) == 14))
+		{
+			*cardType = CARD_TYPE_ROCKET;
+		}
+	}
+	else if (iCardCount == 4)
+	{
+		if ((outCards[0] & 0x0f) == (outCards[1] & 0x0f)
+			&& (outCards[0] & 0x0f) == (outCards[2] & 0x0f)
+			&& (outCards[0] & 0x0f) == (outCards[3] & 0x0f))
+		{
+			*cardType = CARD_TYPE_BOMB;
+		}
+	}
+
+	return 1;
+}
+
 /*
  * getCard
  */
-int32 OutCardAi::getSingleCard(uint8* SelfCards, uint8* cOutCard, int32 iCardPos)
+int32 OutCardAi::getSingleCard(uint8* selfCards, uint8* cOutCard, int32 iCardPos)
 {
 	int32 iSelfIdx = iCardPos;
-	while (SelfCards[iSelfIdx + 3] != CARD_TERMINATE)
+	while (selfCards[iSelfIdx + 3] != CARD_TERMINATE)
 	{//0,1,2,3
-		if ((SelfCards[iSelfIdx] & 0x0f) != (SelfCards[iSelfIdx + 1] & 0x0f))
+		if ((selfCards[iSelfIdx] & 0x0f) != (selfCards[iSelfIdx + 1] & 0x0f))
 		{
 			break;
 		}
-		else if ((SelfCards[iSelfIdx] & 0x0f) != (SelfCards[iSelfIdx + 2] & 0x0f))
+		else if ((selfCards[iSelfIdx] & 0x0f) != (selfCards[iSelfIdx + 2] & 0x0f))
 		{
 			iSelfIdx += 2;
 		}
-		else if ((SelfCards[iSelfIdx] & 0x0f) != (SelfCards[iSelfIdx + 3] & 0x0f))
+		else if ((selfCards[iSelfIdx] & 0x0f) != (selfCards[iSelfIdx + 3] & 0x0f))
 		{
 			iSelfIdx += 3;
 		}
@@ -563,18 +1121,18 @@ int32 OutCardAi::getSingleCard(uint8* SelfCards, uint8* cOutCard, int32 iCardPos
 			iSelfIdx += 4;
 		}
 	}
-	if (SelfCards[iSelfIdx + 3] == CARD_TERMINATE)
+	if (selfCards[iSelfIdx + 3] == CARD_TERMINATE)
 	{
-		if (SelfCards[iSelfIdx + 2] != CARD_TERMINATE)
+		if (selfCards[iSelfIdx + 2] != CARD_TERMINATE)
 		{
-			if ((SelfCards[iSelfIdx] & 0x0f) != (SelfCards[iSelfIdx + 1] & 0x0f))
+			if ((selfCards[iSelfIdx] & 0x0f) != (selfCards[iSelfIdx + 1] & 0x0f))
 			{
-				cOutCard[0] = SelfCards[iSelfIdx];
+				cOutCard[0] = selfCards[iSelfIdx];
 				return iSelfIdx;
 			}
-			else if ((SelfCards[iSelfIdx] & 0x0f) != (SelfCards[iSelfIdx + 2] & 0x0f))
+			else if ((selfCards[iSelfIdx] & 0x0f) != (selfCards[iSelfIdx + 2] & 0x0f))
 			{
-				cOutCard[0] = SelfCards[iSelfIdx + 2];
+				cOutCard[0] = selfCards[iSelfIdx + 2];
 				return iSelfIdx + 2;
 			}
 			else
@@ -582,11 +1140,11 @@ int32 OutCardAi::getSingleCard(uint8* SelfCards, uint8* cOutCard, int32 iCardPos
 				return		-1;
 			}
 		}
-		else if (SelfCards[iSelfIdx + 1] != CARD_TERMINATE)
+		else if (selfCards[iSelfIdx + 1] != CARD_TERMINATE)
 		{
-			if ((SelfCards[iSelfIdx] & 0x0f) != (SelfCards[iSelfIdx + 1] & 0x0f))
+			if ((selfCards[iSelfIdx] & 0x0f) != (selfCards[iSelfIdx + 1] & 0x0f))
 			{
-				cOutCard[0] = SelfCards[iSelfIdx];
+				cOutCard[0] = selfCards[iSelfIdx];
 				return iSelfIdx;
 			}
 			else
@@ -594,11 +1152,11 @@ int32 OutCardAi::getSingleCard(uint8* SelfCards, uint8* cOutCard, int32 iCardPos
 				return		-1;
 			}
 		}
-		else if (SelfCards[iSelfIdx] != CARD_TERMINATE)
+		else if (selfCards[iSelfIdx] != CARD_TERMINATE)
 		{
-			if ((SelfCards[iSelfIdx - 1] & 0x0f) != (SelfCards[iSelfIdx] & 0x0f))
+			if ((selfCards[iSelfIdx - 1] & 0x0f) != (selfCards[iSelfIdx] & 0x0f))
 			{
-				cOutCard[0] = SelfCards[iSelfIdx];
+				cOutCard[0] = selfCards[iSelfIdx];
 				return iSelfIdx;
 			}
 			else
@@ -611,23 +1169,21 @@ int32 OutCardAi::getSingleCard(uint8* SelfCards, uint8* cOutCard, int32 iCardPos
 	}
 	else
 	{
-		cOutCard[0] = SelfCards[iSelfIdx];
+		cOutCard[0] = selfCards[iSelfIdx];
 		return iSelfIdx;
 	}
-
-
 }
 
-int32 OutCardAi::forceGetSingleCard(uint8* SelfCards, uint8* cOutCard, int32 iCardPos)
+int32 OutCardAi::forceGetSingleCard(uint8* selfCards, uint8* cOutCard, int32 iCardPos)
 {
 	int32 iSelfIdx = iCardPos;
 
 	//炸弹不能拆成单张
-	while (SelfCards[iSelfIdx + 3] != CARD_TERMINATE)
+	while (selfCards[iSelfIdx + 3] != CARD_TERMINATE)
 	{
-		if ((SelfCards[iSelfIdx] & 0x0f) == (SelfCards[iSelfIdx + 1] & 0x0f)
-			&& (SelfCards[iSelfIdx] & 0x0f) == (SelfCards[iSelfIdx + 2] & 0x0f)
-			&& (SelfCards[iSelfIdx] & 0x0f) == (SelfCards[iSelfIdx + 3] & 0x0f)
+		if ((selfCards[iSelfIdx] & 0x0f) == (selfCards[iSelfIdx + 1] & 0x0f)
+			&& (selfCards[iSelfIdx] & 0x0f) == (selfCards[iSelfIdx + 2] & 0x0f)
+			&& (selfCards[iSelfIdx] & 0x0f) == (selfCards[iSelfIdx + 3] & 0x0f)
 			)
 		{
 			iSelfIdx += 4;
@@ -639,33 +1195,33 @@ int32 OutCardAi::forceGetSingleCard(uint8* SelfCards, uint8* cOutCard, int32 iCa
 	}
 
 	//火箭不能拆成单牌
-	if ((SelfCards[iSelfIdx] & 0x0f) == 13 && (SelfCards[iSelfIdx + 1] & 0x0f) == 14)
+	if ((selfCards[iSelfIdx] & 0x0f) == 13 && (selfCards[iSelfIdx + 1] & 0x0f) == 14)
 	{
 		return -1;
 	}
-	if (SelfCards[iSelfIdx] == CARD_TERMINATE)
+	if (selfCards[iSelfIdx] == CARD_TERMINATE)
 	{
 		return -1;
 	}
 
-	cOutCard[0] = SelfCards[iSelfIdx];
+	cOutCard[0] = selfCards[iSelfIdx];
 	return iSelfIdx;
 }
 
-int32 OutCardAi::getPairCard(uint8* SelfCards, uint8* OutCards, int32 CardBegPos)
+int32 OutCardAi::getPairCard(uint8* selfCards, uint8* outCards, int32 CardBegPos)
 {
 	int32 iSelfIdx = CardBegPos;
-	while (SelfCards[iSelfIdx + 3] != CARD_TERMINATE)
+	while (selfCards[iSelfIdx + 3] != CARD_TERMINATE)
 	{
-		if ((SelfCards[iSelfIdx] & 0x0f) != (SelfCards[iSelfIdx + 1] & 0x0f))
+		if ((selfCards[iSelfIdx] & 0x0f) != (selfCards[iSelfIdx + 1] & 0x0f))
 		{
 			iSelfIdx++;
 		}
-		else if ((SelfCards[iSelfIdx] & 0x0f) != (SelfCards[iSelfIdx + 2] & 0x0f))
+		else if ((selfCards[iSelfIdx] & 0x0f) != (selfCards[iSelfIdx + 2] & 0x0f))
 		{
 			break;
 		}
-		else if ((SelfCards[iSelfIdx] & 0x0f) != (SelfCards[iSelfIdx + 3] & 0x0f))
+		else if ((selfCards[iSelfIdx] & 0x0f) != (selfCards[iSelfIdx + 3] & 0x0f))
 		{
 			iSelfIdx += 3;
 		}
@@ -674,22 +1230,22 @@ int32 OutCardAi::getPairCard(uint8* SelfCards, uint8* OutCards, int32 CardBegPos
 			iSelfIdx += 4;
 		}
 	}
-	if (SelfCards[iSelfIdx + 3] == CARD_TERMINATE)
+	if (selfCards[iSelfIdx + 3] == CARD_TERMINATE)
 	{
 		///不出牌
-		if (SelfCards[iSelfIdx + 2] != CARD_TERMINATE)
+		if (selfCards[iSelfIdx + 2] != CARD_TERMINATE)
 		{
-			if ((SelfCards[iSelfIdx] & 0x0f) == (SelfCards[iSelfIdx + 1] & 0x0f)
-				&& (SelfCards[iSelfIdx + 1] & 0x0f) != (SelfCards[iSelfIdx + 2] & 0x0f))
+			if ((selfCards[iSelfIdx] & 0x0f) == (selfCards[iSelfIdx + 1] & 0x0f)
+				&& (selfCards[iSelfIdx + 1] & 0x0f) != (selfCards[iSelfIdx + 2] & 0x0f))
 			{
-				OutCards[0] = SelfCards[iSelfIdx];
-				OutCards[1] = SelfCards[iSelfIdx + 1];
+				outCards[0] = selfCards[iSelfIdx];
+				outCards[1] = selfCards[iSelfIdx + 1];
 				return	iSelfIdx;
 			}
-			else if ((SelfCards[iSelfIdx] & 0x0f) != (SelfCards[iSelfIdx + 1] & 0x0f) && (SelfCards[iSelfIdx + 1] & 0x0f) == (SelfCards[iSelfIdx + 2] & 0x0f))
+			else if ((selfCards[iSelfIdx] & 0x0f) != (selfCards[iSelfIdx + 1] & 0x0f) && (selfCards[iSelfIdx + 1] & 0x0f) == (selfCards[iSelfIdx + 2] & 0x0f))
 			{
-				OutCards[0] = SelfCards[iSelfIdx + 1];
-				OutCards[1] = SelfCards[iSelfIdx + 2];
+				outCards[0] = selfCards[iSelfIdx + 1];
+				outCards[1] = selfCards[iSelfIdx + 2];
 				return	iSelfIdx + 1;
 			}
 			else
@@ -697,12 +1253,12 @@ int32 OutCardAi::getPairCard(uint8* SelfCards, uint8* OutCards, int32 CardBegPos
 				return -1;
 			}
 		}
-		else if (SelfCards[iSelfIdx + 1] != CARD_TERMINATE)
+		else if (selfCards[iSelfIdx + 1] != CARD_TERMINATE)
 		{
-			if ((SelfCards[iSelfIdx] & 0x0f) == (SelfCards[iSelfIdx + 1] & 0x0f))
+			if ((selfCards[iSelfIdx] & 0x0f) == (selfCards[iSelfIdx + 1] & 0x0f))
 			{
-				OutCards[0] = SelfCards[iSelfIdx];
-				OutCards[1] = SelfCards[iSelfIdx + 1];
+				outCards[0] = selfCards[iSelfIdx];
+				outCards[1] = selfCards[iSelfIdx + 1];
 				return	iSelfIdx;
 			}
 			else
@@ -714,29 +1270,29 @@ int32 OutCardAi::getPairCard(uint8* SelfCards, uint8* OutCards, int32 CardBegPos
 	}
 	else
 	{
-		OutCards[0] = SelfCards[iSelfIdx];
-		OutCards[1] = SelfCards[iSelfIdx + 1];
+		outCards[0] = selfCards[iSelfIdx];
+		outCards[1] = selfCards[iSelfIdx + 1];
 		return	iSelfIdx;
 		///更新手中的牌
 	}
 }
 
-int32 OutCardAi::forceGetPairCard(uint8* SelfCards, uint8* OutCards, int32 iCardPos)
+int32 OutCardAi::forceGetPairCard(uint8* selfCards, uint8* outCards, int32 iCardPos)
 {
 	int32 iSelfIdx = iCardPos;
-	while (SelfCards[iSelfIdx + 3] != CARD_TERMINATE)
+	while (selfCards[iSelfIdx + 3] != CARD_TERMINATE)
 	{
 		//炸弹不能拆出对子
-		if ((SelfCards[iSelfIdx] & 0x0f) == (SelfCards[iSelfIdx + 1] & 0x0f)
-			&& (SelfCards[iSelfIdx] & 0x0f) == (SelfCards[iSelfIdx + 2] & 0x0f)
-			&& (SelfCards[iSelfIdx] & 0x0f) == (SelfCards[iSelfIdx + 3] & 0x0f)
+		if ((selfCards[iSelfIdx] & 0x0f) == (selfCards[iSelfIdx + 1] & 0x0f)
+			&& (selfCards[iSelfIdx] & 0x0f) == (selfCards[iSelfIdx + 2] & 0x0f)
+			&& (selfCards[iSelfIdx] & 0x0f) == (selfCards[iSelfIdx + 3] & 0x0f)
 			)
 		{
 			iSelfIdx += 4;
 			continue;
 		}
 
-		if ((SelfCards[iSelfIdx] & 0x0f) != (SelfCards[iSelfIdx + 1] & 0x0f))
+		if ((selfCards[iSelfIdx] & 0x0f) != (selfCards[iSelfIdx + 1] & 0x0f))
 		{
 			iSelfIdx++;
 		}
@@ -748,32 +1304,32 @@ int32 OutCardAi::forceGetPairCard(uint8* SelfCards, uint8* OutCards, int32 iCard
 
 	uint8 pp[17];
 
-	memcpy(pp, SelfCards, 17);
-	if (SelfCards[iSelfIdx] != CARD_TERMINATE && SelfCards[iSelfIdx + 1] != CARD_TERMINATE
-		&& (SelfCards[iSelfIdx] & 0x0f) == (SelfCards[iSelfIdx + 1] & 0x0f))
+	memcpy(pp, selfCards, 17);
+	if (selfCards[iSelfIdx] != CARD_TERMINATE && selfCards[iSelfIdx + 1] != CARD_TERMINATE
+		&& (selfCards[iSelfIdx] & 0x0f) == (selfCards[iSelfIdx + 1] & 0x0f))
 	{
-		OutCards[0] = SelfCards[iSelfIdx];
-		OutCards[1] = SelfCards[iSelfIdx + 1];
+		outCards[0] = selfCards[iSelfIdx];
+		outCards[1] = selfCards[iSelfIdx + 1];
 		return iSelfIdx;
 	}
 	return -1;
 
 }
 
-int32 OutCardAi::getTripleCard(uint8* SelfCards, uint8* OutCards, int32 CardBegPos)
+int32 OutCardAi::getTripleCard(uint8* selfCards, uint8* outCards, int32 CardBegPos)
 {
 	int32 SelfIdx = CardBegPos;
-	while (SelfCards[SelfIdx + 3] != CARD_TERMINATE)
+	while (selfCards[SelfIdx + 3] != CARD_TERMINATE)
 	{
-		if ((SelfCards[SelfIdx] & 0x0f) != (SelfCards[SelfIdx + 1] & 0x0f))
+		if ((selfCards[SelfIdx] & 0x0f) != (selfCards[SelfIdx + 1] & 0x0f))
 		{
 			SelfIdx++;
 		}
-		else if ((SelfCards[SelfIdx] & 0x0f) != (SelfCards[SelfIdx + 2] & 0x0f))
+		else if ((selfCards[SelfIdx] & 0x0f) != (selfCards[SelfIdx + 2] & 0x0f))
 		{
 			SelfIdx += 2;
 		}
-		else if ((SelfCards[SelfIdx] & 0x0f) != (SelfCards[SelfIdx + 3] & 0x0f))
+		else if ((selfCards[SelfIdx] & 0x0f) != (selfCards[SelfIdx + 3] & 0x0f))
 		{
 			break;
 		}
@@ -782,17 +1338,17 @@ int32 OutCardAi::getTripleCard(uint8* SelfCards, uint8* OutCards, int32 CardBegP
 			SelfIdx += 4;
 		}
 	}
-	if (SelfCards[SelfIdx + 3] == CARD_TERMINATE)
+	if (selfCards[SelfIdx + 3] == CARD_TERMINATE)
 	{
 		///不出牌
-		if (SelfCards[SelfIdx + 2] != CARD_TERMINATE)
+		if (selfCards[SelfIdx + 2] != CARD_TERMINATE)
 		{
-			if ((SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 1] & 0x0f)
-				&& (SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 2] & 0x0f))
+			if ((selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 1] & 0x0f)
+				&& (selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 2] & 0x0f))
 			{
-				OutCards[0] = SelfCards[SelfIdx];
-				OutCards[1] = SelfCards[SelfIdx + 1];
-				OutCards[2] = SelfCards[SelfIdx + 2];
+				outCards[0] = selfCards[SelfIdx];
+				outCards[1] = selfCards[SelfIdx + 1];
+				outCards[2] = selfCards[SelfIdx + 2];
 				return SelfIdx;
 			}
 			else
@@ -807,28 +1363,28 @@ int32 OutCardAi::getTripleCard(uint8* SelfCards, uint8* OutCards, int32 CardBegP
 	}
 	else
 	{
-		OutCards[0] = SelfCards[SelfIdx];
-		OutCards[1] = SelfCards[SelfIdx + 1];
-		OutCards[2] = SelfCards[SelfIdx + 2];
+		outCards[0] = selfCards[SelfIdx];
+		outCards[1] = selfCards[SelfIdx + 1];
+		outCards[2] = selfCards[SelfIdx + 2];
 		return SelfIdx;
 		///更新手中的牌
 	}
 }
 
-int32 OutCardAi::getBombCard(uint8* SelfCards, uint8* OutCards, int32 CardBegPos)
+int32 OutCardAi::getBombCard(uint8* selfCards, uint8* outCards, int32 CardBegPos)
 {
 	int32 SelfIdx = CardBegPos;
-	while (SelfCards[SelfIdx + 3] != CARD_TERMINATE)
+	while (selfCards[SelfIdx + 3] != CARD_TERMINATE)
 	{
-		if ((SelfCards[SelfIdx] & 0x0f) != (SelfCards[SelfIdx + 1] & 0x0f))
+		if ((selfCards[SelfIdx] & 0x0f) != (selfCards[SelfIdx + 1] & 0x0f))
 		{
 			SelfIdx++;
 		}
-		else if ((SelfCards[SelfIdx] & 0x0f) != (SelfCards[SelfIdx + 2] & 0x0f))
+		else if ((selfCards[SelfIdx] & 0x0f) != (selfCards[SelfIdx + 2] & 0x0f))
 		{
 			SelfIdx += 2;
 		}
-		else if ((SelfCards[SelfIdx] & 0x0f) != (SelfCards[SelfIdx + 3] & 0x0f))
+		else if ((selfCards[SelfIdx] & 0x0f) != (selfCards[SelfIdx + 3] & 0x0f))
 		{
 			SelfIdx += 3;
 		}
@@ -837,32 +1393,32 @@ int32 OutCardAi::getBombCard(uint8* SelfCards, uint8* OutCards, int32 CardBegPos
 			break;
 		}
 	}
-	if (SelfCards[SelfIdx + 3] == CARD_TERMINATE)
+	if (selfCards[SelfIdx + 3] == CARD_TERMINATE)
 	{
 		return -1;///不出牌
 	}
 	else
 	{
-		OutCards[0] = SelfCards[SelfIdx];
-		OutCards[1] = SelfCards[SelfIdx + 1];
-		OutCards[2] = SelfCards[SelfIdx + 2];
-		OutCards[3] = SelfCards[SelfIdx + 3];
+		outCards[0] = selfCards[SelfIdx];
+		outCards[1] = selfCards[SelfIdx + 1];
+		outCards[2] = selfCards[SelfIdx + 2];
+		outCards[3] = selfCards[SelfIdx + 3];
 		return	 SelfIdx;
 		///更新手中的牌
 	}
 }
 
-int32 OutCardAi::getRocketCard(uint8* SelfCards, uint8* OutCards)
+int32 OutCardAi::getRocketCard(uint8* selfCards, uint8* outCards)
 {
 	int32 iCardIdx = 0;
-	while (SelfCards[iCardIdx] != CARD_TERMINATE)
+	while (selfCards[iCardIdx] != CARD_TERMINATE)
 	{
 		iCardIdx++;
 	}
-	if ((SelfCards[iCardIdx - 1] & 0x0f) == 14 && (SelfCards[iCardIdx - 2] & 0x0f) == 13)
+	if ((selfCards[iCardIdx - 1] & 0x0f) == 14 && (selfCards[iCardIdx - 2] & 0x0f) == 13)
 	{
-		OutCards[0] = SelfCards[iCardIdx - 2];
-		OutCards[1] = SelfCards[iCardIdx - 1];
+		outCards[0] = selfCards[iCardIdx - 2];
+		outCards[1] = selfCards[iCardIdx - 1];
 		return iCardIdx - 2;
 	}
 	else
@@ -871,20 +1427,20 @@ int32 OutCardAi::getRocketCard(uint8* SelfCards, uint8* OutCards)
 	}
 }
 
-int32 OutCardAi::getSingleProgression(uint8* SelfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
+int32 OutCardAi::getSingleProgression(uint8* selfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
 {
 	int32 SelfIdx = CardBegPos;
 	uint8 pcTmpCards[20];
 	int32	 iTmpCount = 0;
 	memset(pcTmpCards, CARD_TERMINATE, 20);
-	while (SelfCards[SelfIdx + 1] != CARD_TERMINATE && ((SelfCards[SelfIdx] & 0x0f) < 12))
+	while (selfCards[SelfIdx + 1] != CARD_TERMINATE && ((selfCards[SelfIdx] & 0x0f) < 12))
 	{
-		if ((SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 1] & 0x0f) - 1)
+		if ((selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 1] & 0x0f) - 1)
 		{
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx];
 			SelfIdx++;
 		}
-		else if ((SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 1] & 0x0f))
+		else if ((selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 1] & 0x0f))
 		{
 			SelfIdx++;
 		}
@@ -898,11 +1454,11 @@ int32 OutCardAi::getSingleProgression(uint8* SelfCards, uint8* OutCardss, int32 
 			break;
 		}
 	}
-	if (SelfCards[SelfIdx + 1] == CARD_TERMINATE && ((SelfCards[SelfIdx] & 0x0f) < 12))
+	if (selfCards[SelfIdx + 1] == CARD_TERMINATE && ((selfCards[SelfIdx] & 0x0f) < 12))
 	{
-		if ((SelfCards[SelfIdx - 1] & 0x0f) == (SelfCards[SelfIdx] & 0x0f) - 1)
+		if ((selfCards[SelfIdx - 1] & 0x0f) == (selfCards[SelfIdx] & 0x0f) - 1)
 		{
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx];
 			SelfIdx++;
 		}
 	}
@@ -922,7 +1478,7 @@ int32 OutCardAi::getSingleProgression(uint8* SelfCards, uint8* OutCardss, int32 
 	}
 }
 
-int32	OutCardAi::getPairProgression(uint8* SelfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
+int32 OutCardAi::getPairProgression(uint8* selfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
 {
 	int32 SelfIdx = CardBegPos;
 	uint8 pcTmpCards[20];
@@ -932,19 +1488,19 @@ int32	OutCardAi::getPairProgression(uint8* SelfCards, uint8* OutCardss, int32 Ca
 	{
 		return -1;
 	}
-	while (SelfCards[SelfIdx + 2] != CARD_TERMINATE && ((SelfCards[SelfIdx] & 0x0f) < 12))
+	while (selfCards[SelfIdx + 2] != CARD_TERMINATE && ((selfCards[SelfIdx] & 0x0f) < 12))
 	{
-		if ((SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 1] & 0x0f)
-			&& (SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 2] & 0x0f) - 1)
+		if ((selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 1] & 0x0f)
+			&& (selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 2] & 0x0f) - 1)
 		{
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx];
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx + 1];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx + 1];
 			SelfIdx += 2;
 		}
-		else if ((SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 1] & 0x0f)
-			&& (SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 2] & 0x0f))
+		else if ((selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 1] & 0x0f)
+			&& (selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 2] & 0x0f))
 		{
-			if ((SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 3] & 0x0f))
+			if ((selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 3] & 0x0f))
 			{
 				iTmpCount = 0;
 				SelfIdx += 4;
@@ -964,12 +1520,12 @@ int32	OutCardAi::getPairProgression(uint8* SelfCards, uint8* OutCardss, int32 Ca
 			break;
 		}
 	}
-	if (SelfCards[SelfIdx + 2] == CARD_TERMINATE && ((SelfCards[SelfIdx] & 0x0f) < 12))
+	if (selfCards[SelfIdx + 2] == CARD_TERMINATE && ((selfCards[SelfIdx] & 0x0f) < 12))
 	{
-		if ((SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 1] & 0x0f))
+		if ((selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 1] & 0x0f))
 		{
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx];
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx + 1];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx + 1];
 			SelfIdx += 2;
 		}
 	}
@@ -989,7 +1545,7 @@ int32	OutCardAi::getPairProgression(uint8* SelfCards, uint8* OutCardss, int32 Ca
 	}
 }
 
-int32	OutCardAi::getTripleProgression(uint8* SelfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
+int32 OutCardAi::getTripleProgression(uint8* selfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
 {
 	int32 SelfIdx = CardBegPos;
 	uint8 pcTmpCards[20];
@@ -999,18 +1555,18 @@ int32	OutCardAi::getTripleProgression(uint8* SelfCards, uint8* OutCardss, int32 
 	{
 		return -1;
 	}
-	while (SelfCards[SelfIdx + 3] != CARD_TERMINATE && ((SelfCards[SelfIdx] & 0x0f) < 12))
+	while (selfCards[SelfIdx + 3] != CARD_TERMINATE && ((selfCards[SelfIdx] & 0x0f) < 12))
 	{
-		if ((SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 2] & 0x0f)
-			&& (SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 3] & 0x0f) - 1)
+		if ((selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 2] & 0x0f)
+			&& (selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 3] & 0x0f) - 1)
 		{
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx];
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx + 1];
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx + 2];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx + 1];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx + 2];
 			SelfIdx += 3;
 		}
-		else if ((SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 2] & 0x0f)
-			&& (SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 3] & 0x0f))
+		else if ((selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 2] & 0x0f)
+			&& (selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 3] & 0x0f))
 		{
 			iTmpCount = 0;
 			SelfIdx += 4;
@@ -1025,13 +1581,13 @@ int32	OutCardAi::getTripleProgression(uint8* SelfCards, uint8* OutCardss, int32 
 			break;
 		}
 	}
-	if ((SelfCards[SelfIdx + 3] == CARD_TERMINATE) && ((SelfCards[SelfIdx] & 0x0f) < 12))
+	if ((selfCards[SelfIdx + 3] == CARD_TERMINATE) && ((selfCards[SelfIdx] & 0x0f) < 12))
 	{
-		if ((SelfCards[SelfIdx] & 0x0f) == (SelfCards[SelfIdx + 2] & 0x0f))
+		if ((selfCards[SelfIdx] & 0x0f) == (selfCards[SelfIdx + 2] & 0x0f))
 		{
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx];
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx + 1];
-			pcTmpCards[iTmpCount++] = SelfCards[SelfIdx + 2];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx + 1];
+			pcTmpCards[iTmpCount++] = selfCards[SelfIdx + 2];
 			SelfIdx += 3;
 		}
 	}
@@ -1051,7 +1607,7 @@ int32	OutCardAi::getTripleProgression(uint8* SelfCards, uint8* OutCardss, int32 
 	}
 }
 
-int32	OutCardAi::getTripleWithOne(uint8* SelfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
+int32 OutCardAi::getTripleWithOne(uint8* selfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
 {
 	int32 SelfIdx = CardBegPos;
 	uint8 pcTmpCards[20];
@@ -1062,10 +1618,10 @@ int32	OutCardAi::getTripleWithOne(uint8* SelfCards, uint8* OutCardss, int32 Card
 	{
 		return -1;
 	}
-	if ((SelfIdx = getTripleCard(SelfCards, pcTmpCards, CardBegPos)) >= 0)
+	if ((SelfIdx = getTripleCard(selfCards, pcTmpCards, CardBegPos)) >= 0)
 	{
 		iTmpCount += 3;
-		if (getSingleCard(SelfCards, pcTmpCards + iTmpCount, 0) < 0)
+		if (getSingleCard(selfCards, pcTmpCards + iTmpCount, 0) < 0)
 		{
 			return -1;
 		}
@@ -1088,7 +1644,7 @@ int32	OutCardAi::getTripleWithOne(uint8* SelfCards, uint8* OutCardss, int32 Card
 	///更新手中的牌
 }
 
-int32	OutCardAi::getTripleWithTwo(uint8* SelfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
+int32 OutCardAi::getTripleWithTwo(uint8* selfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
 {
 	int32 SelfIdx = CardBegPos;
 	uint8 pcTmpCards[20];
@@ -1099,10 +1655,10 @@ int32	OutCardAi::getTripleWithTwo(uint8* SelfCards, uint8* OutCardss, int32 Card
 	{
 		return -1;
 	}
-	if ((SelfIdx = getTripleCard(SelfCards, pcTmpCards, CardBegPos)) >= 0)
+	if ((SelfIdx = getTripleCard(selfCards, pcTmpCards, CardBegPos)) >= 0)
 	{
 		iTmpCount += 3;
-		if (getPairCard(SelfCards, pcTmpCards + iTmpCount, 0) < 0)
+		if (getPairCard(selfCards, pcTmpCards + iTmpCount, 0) < 0)
 		{
 			return -1;
 		}
@@ -1125,7 +1681,7 @@ int32	OutCardAi::getTripleWithTwo(uint8* SelfCards, uint8* OutCardss, int32 Card
 	///更新手中的牌
 }
 
-int32	OutCardAi::getAirPlane(uint8* SelfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
+int32 OutCardAi::getAirPlane(uint8* selfCards, uint8* OutCardss, int32 CardBegPos, int32 CardsNum)
 {
 	int32 SelfIdx = CardBegPos;
 	uint8 pcTmpCards[20];
@@ -1144,7 +1700,7 @@ int32	OutCardAi::getAirPlane(uint8* SelfCards, uint8* OutCardss, int32 CardBegPo
 	{
 		return -1;
 	}
-	if (getTripleProgression(SelfCards, pcTmpCards, CardBegPos, iTripleNum * 3) >= 0)
+	if (getTripleProgression(selfCards, pcTmpCards, CardBegPos, iTripleNum * 3) >= 0)
 	{
 		int32 iIdx = 0;
 		int32 iPos = 0;
@@ -1153,7 +1709,7 @@ int32	OutCardAi::getAirPlane(uint8* SelfCards, uint8* OutCardss, int32 CardBegPo
 		{
 			for (iIdx = 0; iIdx < iTripleNum; iIdx++)
 			{
-				iPos = getSingleCard(SelfCards, pcTmpCards + iTmpCount, iPos);
+				iPos = getSingleCard(selfCards, pcTmpCards + iTmpCount, iPos);
 				if (iPos < 0)
 				{
 					break;
@@ -1170,7 +1726,7 @@ int32	OutCardAi::getAirPlane(uint8* SelfCards, uint8* OutCardss, int32 CardBegPo
 		{
 			for (iIdx = 0; iIdx < iTripleNum; iIdx++)
 			{
-				iPos = getPairCard(SelfCards, pcTmpCards + iTmpCount, iPos);
+				iPos = getPairCard(selfCards, pcTmpCards + iTmpCount, iPos);
 				if (iPos < 0)
 				{
 					break;
@@ -1196,3 +1752,261 @@ int32	OutCardAi::getAirPlane(uint8* SelfCards, uint8* OutCardss, int32 CardBegPo
 
 }
 
+
+/*
+* judgeCard
+*/
+
+int32 OutCardAi::judgeSingleProgression(uint8* cards, int32 cardsNum)
+{
+	if (cardsNum < 5)
+	{
+		return -1;
+	}
+	int32 iIdxCount = 1;
+	for (; iIdxCount < cardsNum; iIdxCount++)
+	{
+		if ((cards[0] & 0x0f) + iIdxCount != (cards[iIdxCount] & 0x0f)
+			|| (cards[iIdxCount] & 0x0f) >= 12)
+		{
+			break;
+		}
+	}
+	if (iIdxCount < cardsNum)
+	{
+		return -1;
+	}
+	else
+	{
+		return cards[0];
+	}
+}
+
+int32 OutCardAi::judgePairProgression(uint8* cards, int32 cardsNum)
+{
+	if (cardsNum < 3)
+	{
+		return -1;
+	}
+	int32 iIdxCount = 0;
+	for (; iIdxCount < cardsNum; iIdxCount += 2)
+	{
+		if ((cards[iIdxCount] & 0x0f) >= 12)
+		{
+			break;
+		}
+		else if ((cards[iIdxCount] & 0x0f) != (cards[iIdxCount + 1] & 0x0f))
+		{
+			break;
+		}
+		else if (iIdxCount < cardsNum - 2)
+		{
+			if ((cards[iIdxCount] & 0x0f) + 1 != (cards[iIdxCount + 2] & 0x0f))
+			{
+				break;
+			}
+		}
+	}
+	if (iIdxCount < cardsNum)
+	{
+		return -1;
+	}
+	else
+	{
+		return cards[0];
+	}
+}
+
+int32 OutCardAi::judgeTripleProgression(uint8* cards, int32 cardsNum)
+{
+	if (cardsNum < 2)
+	{
+		return -1;
+	}
+	int32 iIdxCount = 0;
+	for (; iIdxCount < cardsNum; iIdxCount += 3)
+	{
+		if ((cards[iIdxCount] & 0x0f) >= 12)
+		{
+			break;
+		}
+		else if ((cards[iIdxCount] & 0x0f) != (cards[iIdxCount + 2] & 0x0f))
+		{
+			break;
+		}
+		else if (iIdxCount < cardsNum - 3)
+		{
+			if ((cards[iIdxCount] & 0x0f) + 1 != (cards[iIdxCount + 3] & 0x0f))
+			{
+				break;
+			}
+		}
+	}
+	if (iIdxCount < cardsNum)
+	{
+		return -1;
+	}
+	else
+	{
+		return cards[0];
+	}
+}
+
+int32 OutCardAi::judgeTripleWithOne(uint8* cards, int32 cardsNum)
+{
+	if (cardsNum != 4)
+	{
+		return -1;
+	}
+	if ((cards[0] & 0x0f) == (cards[2] & 0x0f) && (cards[0] & 0x0f) != (cards[3] & 0x0f))
+	{
+		return cards[0];
+	}
+	else if ((cards[0] & 0x0f) != (cards[1] & 0x0f) && (cards[1] & 0x0f) == (cards[3] & 0x0f))
+	{
+		return cards[1];
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+int32 OutCardAi::judgeTripleWithTwo(uint8* cards, int32 cardsNum)
+{
+	if (cardsNum != 5)
+	{
+		return -1;
+	}
+	if ((cards[0] & 0x0f) == (cards[2] & 0x0f) && (cards[0] & 0x0f) != (cards[3] & 0x0f)
+		&& (cards[3] & 0x0f) == (cards[4] & 0x0f))
+	{
+		return cards[0];
+	}
+	else if ((cards[0] & 0x0f) == (cards[1] & 0x0f) && (cards[0] & 0x0f) != (cards[2] & 0x0f)
+		&& (cards[2] & 0x0f) == (cards[4] & 0x0f))
+	{
+		return cards[2];
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+int32 OutCardAi::judgeFourWithTwo(uint8* cards, int32 cardsNum)
+{
+	if (cardsNum != 6 && cardsNum != 8)
+	{
+		return -1;
+	}
+	if (cardsNum == 6)
+	{
+		if ((cards[0] & 0x0f) == (cards[3] & 0x0f) && (cards[4] & 0x0f) != (cards[5] & 0x0f))
+		{
+			return cards[0];
+		}
+		else if ((cards[1] & 0x0f) == (cards[4] & 0x0f) && (cards[0] & 0x0f) != (cards[5] & 0x0f))
+		{
+			return cards[1];
+		}
+		else if ((cards[2] & 0x0f) == (cards[5] & 0x0f) && (cards[0] & 0x0f) != (cards[1] & 0x0f))
+		{
+			return cards[2];
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	else if (cardsNum == 8)
+	{
+		if ((cards[0] & 0x0f) == (cards[3] & 0x0f) && (cards[4] & 0x0f) == (cards[5] & 0x0f)
+			&& (cards[6] & 0x0f) == (cards[7] & 0x0f))
+		{
+			return cards[0];
+		}
+		else if ((cards[2] & 0x0f) == (cards[5] & 0x0f) && (cards[0] & 0x0f) == (cards[1] & 0x0f)
+			&& (cards[6] & 0x0f) == (cards[7] & 0x0f))
+		{
+			return cards[2];
+		}
+		else if ((cards[4] & 0x0f) == (cards[7] & 0x0f) && (cards[0] & 0x0f) == (cards[1] & 0x0f)
+			&& (cards[2] & 0x0f) == (cards[3] & 0x0f))
+		{
+			return cards[4];
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	return -1;
+}
+
+int32 OutCardAi::judgeAirPlane(uint8* cards, int32 cardsNum)
+{
+	if ((cardsNum % 4) != 0 && (cardsNum % 5) != 0)
+	{
+		return -1;
+	}
+
+	if (cardsNum % 4 == 0)
+	{
+		int32	iCount = cardsNum >> 2;
+		if ((cards[0] & 0x0f) + 1 == (cards[5] & 0x0f))
+		{
+			return judgeTripleProgression(cards, cardsNum - iCount);
+		}
+		else if ((cards[1] & 0x0f) + 1 == (cards[6] & 0x0f))
+		{
+			return judgeTripleProgression(cards + 1, cardsNum - iCount);
+		}
+		else if ((cards[2] & 0x0f) + 1 == (cards[7] & 0x0f))
+		{
+			return judgeTripleProgression(cards + 2, cardsNum - iCount);
+		}
+		else if ((cards[3] & 0x0f) + 1 == (cards[8] & 0x0f))
+		{
+			return judgeTripleProgression(cards + 3, cardsNum - iCount);
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	else
+	{
+		int32	iCount = cardsNum / 5;
+		int32 iCardIdx = 0;
+		int32 iResult = -1;
+		while (iCardIdx < cardsNum)
+		{
+			if ((cards[iCardIdx] & 0x0f) != (cards[iCardIdx + 1] & 0x0f))
+			{
+				iResult = -1;
+				break;
+			}
+			else if ((cards[iCardIdx] & 0x0f) == (cards[iCardIdx + 2] & 0x0f))
+			{
+				if (judgeTripleProgression(cards + iCardIdx, (cardsNum - iCount * 3)) >= 0)
+				{
+					iResult = cards[iCardIdx];
+					iCardIdx += (cardsNum - iCount * 3);
+				}
+				else
+				{
+					iResult = -1;
+					break;
+				}
+			}
+			else
+			{
+				iCardIdx += 2;
+			}
+		}
+		return iResult;
+	}
+
+}
