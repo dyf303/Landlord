@@ -167,9 +167,9 @@ void Player::handleOutCard()
 
 	sOutCardAi->updateCardsFace(_cards, _outCards);
 	UpdateCurOutCardsInfo(_cardType, _outCards, this, true);
-	senToAll(&data,true);	
 	_gameStatus = GAME_STATUS_OUT_CARDED;
 	_right->setGameStatus(GAME_STATUS_START_OUT_CARD);
+	senToAll(&data, true);
 }
 
 void Player::handleRoundOver()
@@ -187,9 +187,9 @@ void Player::handleRoundOver()
 	if (_left->getGameStatus() == GAME_STATUS_ROUNDOVERED &&
 		_right->getGameStatus() == GAME_STATUS_ROUNDOVERED)
 	{
-		resetGame();
 		_left->resetGame();
 		_right->resetGame();
+		resetGame();
 	}	  
 }
 
@@ -319,8 +319,12 @@ int32 Player::getLandlordId()
 
 void Player::resetGame()
 {
-	if (getPlayerType() & PLAYER_TYPE_AI)
-		setGameStatus(GAME_STATUS_LOG_OUTED);
+	//if (getPlayerType() & PLAYER_TYPE_AI)
+	//	setGameStatus(GAME_STATUS_LOG_OUTED);
+	//else
+	//	setGameStatus(GAME_STATUS_WAIT_START);
+	if (getPlayerType() & PLAYER_TYPE_USER)
+		_queueFlags = QUEUE_FLAGS_NULL;
 
 	for (int i = 0; i < CARD_NUMBER; ++i)
 		_cards[i] = CARD_TERMINATE;
@@ -330,7 +334,6 @@ void Player::resetGame()
 	if (getPlayerType() & PLAYER_TYPE_USER )
 		_queueFlags = QUEUE_FLAGS_NULL;
 
-	_gameStatus = GAME_STATUS_WAIT_START;
 	_aiGameStatus = AI_GAME_STATUS_NULL;
 	_expiration = sWorld->getIntConfig(CONFIG_WAIT_TIME);
 	_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);

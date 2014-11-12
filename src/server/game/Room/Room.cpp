@@ -41,7 +41,7 @@ void Room::Update(const uint32 diff)
 			if (!player->inTheGame())
 			{
 				_playerMap.erase(itr);
-				if (player->idle())
+				if (player->idle())/// if not idle, delete player in updateOne Two Three
 					delete player;
 			}	
 			continue;
@@ -237,7 +237,7 @@ bool Room::LogoutThree(threePlayer &threeP)
 
 	case 5:_OnePlayerList.push_back(p1); delete p0; delete p2; break;
 
-	case 6:_OnePlayerList.push_back(p0); delete p1; delete p2; break;
+ 	case 6:_OnePlayerList.push_back(p0); delete p1; delete p2; break;
 
 	case 7:RELEASE(p0); RELEASE(p1); RELEASE(p2); break;
 
