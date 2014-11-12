@@ -74,6 +74,9 @@ void Player::aiHandleGrabLandlord(WorldPacket* packet)
 
 	if (getLandlordId() == getid())
 	{
+		setCurOutCardPlayer(this);
+		_left->setCurOutCardPlayer(this);
+		_right->setCurOutCardPlayer(this);
 		sOutCardAi->OutCard(this);
 		_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY);
 		_aiGameStatus = AI_GAME_STATUS_OUT_CARD;

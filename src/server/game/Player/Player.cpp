@@ -150,6 +150,7 @@ void Player::handleGrabLandlord()
 	_gameStatus = GAME_STATUS_GRABED_LAND_LORD;
 	if (getLandlordId() == getid())
 	{
+		setCurOutCardPlayer(this);
 		_left->setCurOutCardPlayer(this);
 		_right->setCurOutCardPlayer(this);
 		_gameStatus = GAME_STATUS_START_OUT_CARD;
