@@ -229,6 +229,7 @@ void Player::handLogOut()
 		{
 			_gameStatus = GameStatus(0x0f & _gameStatus);
 			_playerType = PLAYER_TYPE_REPLACE_AI;
+			setSession(nullptr);
 			aiHandGame();
 			return;
 		}

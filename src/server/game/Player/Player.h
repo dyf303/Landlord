@@ -123,6 +123,7 @@ public:
 
 	void initPlayer();
 	WorldSession* GetSession() const { return _session; }
+	void setSession(WorldSession * session){ _session = session; }
 	void loadData(PlayerInfo &pInfo);
 	uint32 getid(){ return _playerInfo.id; }
 	char const * GetName() { return _playerInfo.nick_name; }
