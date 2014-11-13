@@ -31,7 +31,7 @@ void Player::initPlayer()
 	_winGold = 0;
 	_aiGameStatus = AI_GAME_STATUS_NULL;
 
-	for (int i = 0; i < BASIC_CARD; ++i)
+	for (int i = 0; i < 7; ++i)
 		_baseCards[i] = CARD_TERMINATE;
 	for (int i = 0; i < 24; ++i)
 	{
@@ -130,7 +130,7 @@ void Player::handleDealCard()
 	data.resize(8);
 	data << getDefaultLandlordUserId();
 	data.append((uint8 *)_cards, CARD_NUMBER);
-	data.append((uint8 *)_baseCards, BASIC_CARD);
+	data.append((uint8 *)_baseCards, 7);
 
 	sendPacket(&data);
 
