@@ -57,8 +57,10 @@ enum GameStatus:uint8
 	GAME_STATUS_START_OUT_CARD     = 0x07,
 	GAME_STATUS_OUT_CARDING        = 0x08,
 	GAME_STATUS_OUT_CARDED         = 0x09,
-	GAME_STATUS_ROUNDOVERING       = 0x0A,
-	GAME_STATUS_ROUNDOVERED        = 0x0B,
+	GAME_STATUS_GETING_LEFTCARD    = 0x0a,
+	GAME_STATUS_GETED_LEFTCARD     = 0x0b,
+	GAME_STATUS_ROUNDOVERING       = 0x0c,
+	GAME_STATUS_ROUNDOVERED        = 0x0d,
 	GAME_STATUS_LOG_OUTING         = 0x10,
 	GAME_STATUS_LOG_OUTED          = 0x20
 };
@@ -174,6 +176,7 @@ public:
 	void handleDealCard();
 	void handleGrabLandlord();
 	void handleOutCard();
+	void handleGetLeftPlayerCards();
 	void handleRoundOver();
 	void handLogOut();
 	void notifyOther();

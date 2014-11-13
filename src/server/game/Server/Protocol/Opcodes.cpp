@@ -14,7 +14,7 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
 	/*0x06*/{ "CMSG_DOUBLE_SCORE",               &WorldSession::Handle_NULL },
 	/*0x07*/{ "CMSG_SHOW_CARD",                  &WorldSession::Handle_NULL },
 	/*0x08*/{ "CMSG_CARD_OUT",                   &WorldSession::HandleOutCards },
-	/*0x09*/{ "CMSG_REQUEST_CARDS_LEFT",         &WorldSession::Handle_NULL },
+	/*0x09*/{ "CMSG_REQUEST_CARDS_LEFT",         &WorldSession::HandleGetLeftPlayerCards },
 	/*0x0A*/{ "CMSG_ROUND_OVER",                 &WorldSession::HandleRoundOver },
 	/*0x0B*/{ "CMSG_CHANGE_DESK",                &WorldSession::Handle_NULL },
 	/*0x0C*/{ "CMSG_CHAT_SHORTCUT",              &WorldSession::Handle_NULL },

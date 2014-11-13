@@ -78,6 +78,7 @@ class WorldSession
 		void HandleGrabLandlord(WorldPacket& recvPacket);
 		void HandleOutCards(WorldPacket& recvPacket);
 		void HandleRoundOver(WorldPacket& recvPacket);
+		void HandleGetLeftPlayerCards(WorldPacket& recvPacket);
 		void HandlLogout(WorldPacket& recvPacket);
     friend class World;
  

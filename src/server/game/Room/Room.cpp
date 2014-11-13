@@ -13,6 +13,9 @@
 							   else\
 							   _OnePlayerList.push_back(player);
 
+#define LOG_OUT_AI(player)   if(player->getPlayerType() & PLAYER_TYPE_AI)\
+	                            player->setGameStatus(GAME_STATUS_LOG_OUTED);
+
 Room::Room(uint32 id, uint32 basic_score) :_id(id), _basic_score(basic_score)
 {
 
@@ -42,7 +45,7 @@ void Room::Update(const uint32 diff)
 			{
 				_playerMap.erase(itr);
 				if (player->idle())/// if not idle, delete player in updateOne Two Three
-					delete player;
+					RELEASE(player);
 			}	
 			continue;
 		}
@@ -333,32 +336,9 @@ bool Room::roundOver(threePlayer &threeP)
 
 void Room::releaseAiPlayer(threePlayer &threeP)
 {
-	Player *p0 = threeP.first.first;
-	Player *p1 = threeP.first.second;
-	Player *p2 = threeP.second;
-
-	if (p0->getPlayerType() & PLAYER_TYPE_AI)
-	{
-		p0->setGameStatus(GAME_STATUS_LOG_OUTED);
-
-		if (p0->getPlayerType() == PLAYER_TYPE_AI)
-		   sAiPlayerPool->releasePlayer(p0);
-	}		
-	if (p1->getPlayerType() & PLAYER_TYPE_AI)
-	{
-		p1->setGameStatus(GAME_STATUS_LOG_OUTED);
-
-		if (p1->getPlayerType() == PLAYER_TYPE_AI)
-		sAiPlayerPool->releasePlayer(p1);
-	}
-	
-	if (p2->getPlayerType() & PLAYER_TYPE_AI)
-	{
-		p2->setGameStatus(GAME_STATUS_LOG_OUTED);
-
-		if (p2->getPlayerType() == PLAYER_TYPE_AI)
-		  sAiPlayerPool->releasePlayer(p2);
-	}		
+	LOG_OUT_AI(threeP.first.first);
+	LOG_OUT_AI(threeP.first.second);
+	LOG_OUT_AI(threeP.second);
 }
 
 void Room::AddPlayer(uint32 id, Player *player, bool inOne)

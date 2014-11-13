@@ -242,6 +242,13 @@ void WorldSession::HandleOutCards(WorldPacket& recvPacket)
 	player->setGameStatus(GAME_STATUS_OUT_CARDING);
 }
 
+void WorldSession::HandleGetLeftPlayerCards(WorldPacket& recvPacket)
+{
+	Player * player = getPlayer();
+
+	player->setGameStatus(GAME_STATUS_GETING_LEFTCARD);
+}
+
 void WorldSession::HandleRoundOver(WorldPacket& recvPacket)
 {
 	Player * player = getPlayer();
