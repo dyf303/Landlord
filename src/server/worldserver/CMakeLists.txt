@@ -45,6 +45,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/src/server/game
   ${CMAKE_SOURCE_DIR}/src/server/game/AI
   ${CMAKE_SOURCE_DIR}/src/server/game/PrecompiledHeaders
+  ${CMAKE_SOURCE_DIR}/src/server/game/Room
   ${CMAKE_SOURCE_DIR}/src/server/game/Server/Protocol
   ${CMAKE_SOURCE_DIR}/src/server/game/Server
   ${CMAKE_SOURCE_DIR}/src/server/game/World

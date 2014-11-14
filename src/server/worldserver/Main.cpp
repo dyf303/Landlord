@@ -4,6 +4,7 @@
 #include "AsyncAcceptor.h"
 #include "Configuration/Config.h"
 #include "Log.h"
+#include "RoomManager.h"
 #include "World.h"
 #include "WorldSocket.h"
 
@@ -60,6 +61,8 @@ int main(int argc, char* argv[])
 
 	// Shutdown starts here
 	ShutdownThreadPool(threadPool);
+
+	sRoomMgr->UnloadAll();
 
 	return 0;
 }
