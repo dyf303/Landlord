@@ -37,14 +37,14 @@ void WorldSocket::ReadHeaderHandler()
         return;
     }
 
-	AsyncReadData(header->size - sizeof(ClientPktHeader));
+	AsyncReadData(header->size);
 }
 
 void WorldSocket::ReadDataHandler()
 {
     ClientPktHeader* header = reinterpret_cast<ClientPktHeader*>(GetHeaderBuffer());
 
-    uint16 opcode = uint16(header->cmd);
+    uint8 opcode = uint16(header->cmd);
 
     std::string opcodeName = GetOpcodeNameForLogging(opcode);
 
@@ -53,10 +53,8 @@ void WorldSocket::ReadDataHandler()
     if (sPacketLog->CanLogPacket())
         sPacketLog->LogPacket(packet, CLIENT_TO_SERVER, GetRemoteIpAddress(), GetRemotePort());
 
-   // TC_LOG_TRACE("network.opcode", "C->S: %s %s", (_worldSession ? _worldSession->GetPlayerInfo() : GetRemoteIpAddress().to_string()).c_str(), opcodeName.c_str());
+    TC_LOG_TRACE("network.opcode", "C->S: %s %s", (_worldSession ? _worldSession->GetPlayerInfo() : GetRemoteIpAddress().to_string()).c_str(), opcodeName.c_str());
 	
-	packet.read_skip<uint32[2]>();
-
     switch (opcode)
     {
 		case CMSG_PLAYER_LOGIN:
@@ -78,9 +76,6 @@ void WorldSocket::ReadDataHandler()
                 CloseSocket();
                 return;
             }
-
-            // Our Idle timer will reset on any non PING opcodes.
-            // Catches people idling on the login screen and any lingering ingame connections.
             _worldSession->ResetTimeOutTime();
 
             // Copy the packet to the heap before enqueuing
@@ -100,12 +95,10 @@ void WorldSocket::AsyncWrite(WorldPacket& packet)
     if (sPacketLog->CanLogPacket())
         sPacketLog->LogPacket(packet, SERVER_TO_CLIENT, GetRemoteIpAddress(), GetRemotePort());
 
-  //  TC_LOG_TRACE("network.opcode", "S->C: %s %s", (_worldSession ? _worldSession->GetPlayerInfo() : GetRemoteIpAddress().to_string()).c_str(), GetOpcodeNameForLogging(packet.GetOpcode()).c_str());
+    TC_LOG_TRACE("network.opcode", "S->C: %s %s", (_worldSession ? _worldSession->GetPlayerInfo() : GetRemoteIpAddress().to_string()).c_str(), GetOpcodeNameForLogging(packet.GetOpcode()).c_str());
 
-	uint32 Opcode = packet.GetOpcode();
-	/// fix my stupid client,sizeof(Opcode) * 2
-	ServerPktHeader header(packet.size() + sizeof(Opcode) * 2, Opcode);
-
+	uint8 Opcode = packet.GetOpcode();
+	ServerPktHeader header(packet.size(), Opcode);
 
 	std::lock_guard<std::mutex> guard(_writeLock);
 

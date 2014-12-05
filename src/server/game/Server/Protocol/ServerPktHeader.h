@@ -28,24 +28,23 @@ struct ServerPktHeader
     /**
      * size is the length of the payload _plus_ the length of the opcode
      */
-	ServerPktHeader(uint32 size, uint32 cmd) : size(size)
+	ServerPktHeader(uint16 size, uint8 cmd) : size(size)
     {
         uint8 headerIndex=0;
 
-		header[headerIndex++] = 0xFFFF & size;
-		header[headerIndex++] = 0xFFFF & (size >> 16);
+		header[headerIndex++] = 0xFF & size;
+		header[headerIndex++] = 0xFF & (size >> 8);
 
         header[headerIndex++] = 0xFFFF & cmd;
-        header[headerIndex++] = 0xFFFF & (cmd >> 16);
     }
 
     uint8 getHeaderLength()
     {
-        return 4 + 4;
+        return 2 + 1;
     }
 
-    const uint32 size;
-    uint16 header[4];
+    const uint16 size;
+    uint8 header[3];
 };
 
 #pragma pack(pop)
