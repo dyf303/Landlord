@@ -45,8 +45,8 @@ using boost::asio::ip::tcp;
 
 struct ClientPktHeader
 {
-	uint32 size;
-    uint32 cmd;
+	uint16 size;
+    uint8 cmd;
 
     bool IsValid() const { return size >= 4 && size < 10240 && cmd < NUM_MSG_TYPES; }
 };

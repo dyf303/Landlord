@@ -193,10 +193,10 @@ void WorldSession::SendLoginError(uint8 code)
 
 void WorldSession::HandlePlayerLogin(WorldPacket& recvPacket)
 {
-	uint32 spaceid,roomid, SameRoom;
+	uint8 roomid;
 	PlayerInfo pInfo;
 
-	recvPacket >>spaceid>> roomid >> SameRoom;
+	recvPacket >> roomid;
 	recvPacket.read((uint8 *)&pInfo, sizeof(PlayerInfo));
 	if (sRoomMgr->getPlayer(pInfo.id))
 	{
