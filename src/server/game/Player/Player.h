@@ -113,6 +113,12 @@ enum CardType
 	CARD_TYPE_END
 };
 
+enum DeskFlag
+{
+	LEFT = 0,
+	RITHT = 1
+};
+
 class Player
 {
 public:

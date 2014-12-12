@@ -128,15 +128,14 @@ void Player::handleWaitStart()
 
 void Player::handleDealCard()
 {
-	WorldPacket data(SMSG_CARD_DEAL, 36);
-	data.resize(8);
+	WorldPacket data(SMSG_CARD_DEAL, 24);
 	data << getDefaultLandlordUserId();
 	data.append((uint8 *)_cards, CARD_NUMBER);
-	data.append((uint8 *)_baseCards, 7);
+	data.append((uint8 *)_baseCards, BASIC_CARD);
 
 	sendPacket(&data);
 
-  _gameStatus = GAME_STATUS_DEALED_CARD;
+	_gameStatus = GAME_STATUS_DEALED_CARD;
 }
 
 void Player::handleGrabLandlord()
@@ -403,20 +402,20 @@ void Player::sendTwoDesk()
 	if (getPlayerType() != PLAYER_TYPE_USER)
 		return;
 
-	WorldPacket data(SMSG_DESK_TWO, 316);
+	WorldPacket data(SMSG_DESK_TWO, 1 + 152);
 
-	data.resize(8);
-	data << uint32(1);
-	
+	if (_left != nullptr)
+	{
+		data << uint8(LEFT);
+	}
+	else
+	{
+		data << uint8(RITHT);
+	}
+
 	Player *player = _right != nullptr ? _right : _left;
 
-	if (_left)
-		data.resize(8 + 4 + 152);
-
-	data.append((uint8 *)player->getPlayerInfo(),sizeof(PlayerInfo));
-
-	if (_right)
-		data.resize(8 + 4 + 152 + 152);
+	data.append((uint8 *)player->getPlayerInfo(), sizeof(PlayerInfo));
 
 	GetSession()->SendPacket(&data);
 }
@@ -426,10 +425,8 @@ void Player::sendThreeDesk()
 	if (getPlayerType() != PLAYER_TYPE_USER)
 		return;
 
-	WorldPacket data(SMSG_DESK_THREE, 316);
+	WorldPacket data(SMSG_DESK_THREE, 152 + 152);
 
-	data.resize(8);
-	data << uint32(1);
 	data.append((uint8 *)_left->getPlayerInfo(), sizeof(PlayerInfo));
 	data.append((uint8 *)_right->getPlayerInfo(), sizeof(PlayerInfo));
 
