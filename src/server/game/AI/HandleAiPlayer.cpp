@@ -67,7 +67,7 @@ void Player::aiHandleGrabLandlord(WorldPacket* packet)
 	uint32 grabLandlordScore;
 	uint32 landlordId;
 
-	packet->read_skip(8);
+	//packet->read_skip(8);
 	*packet >> grabLandlordPlayerId;
 	*packet >> grabLandlordScore;
 	*packet >> landlordId;
@@ -94,7 +94,7 @@ void Player::aiHandleOutCards(WorldPacket* packet)
 	uint32 outCardsType;
 	uint8  outCards[24];
 
-	packet->read_skip(8);
+//	packet->read_skip(8);
 	*packet >> outCardsPlayerId;
 	*packet >> outCardsType;
 	packet->read((uint8 *)outCards, 24);
@@ -124,7 +124,7 @@ void Player::aiHandlLogout(WorldPacket* packet)
 {
 	uint32 logoutPlayerId;
 	
-	packet->read_skip(8);
+	//packet->read_skip(8);
 	*packet >> logoutPlayerId;
 
 	if (_left == nullptr || _right == nullptr

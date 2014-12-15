@@ -142,7 +142,6 @@ void Player::handleGrabLandlord()
 {
 	WorldPacket data(CMSG_GRAD_LANDLORD, 20);
 
-	data.resize(8);
 	data << uint32(this->getid());
 	data << _grabLandlordScore;
 	data << getLandlordId();
@@ -159,7 +158,6 @@ void Player::handleGrabLandlord()
 void Player::handleOutCard()
 {
 	WorldPacket data(CMSG_CARD_OUT, 40);
-	data.resize(8);
 	data << getid();
 	data << uint32(_cardType);
 	data.append(_outCards, 24);
@@ -174,7 +172,6 @@ void Player::handleOutCard()
 void Player::handleGetLeftPlayerCards()
 {
 	WorldPacket data(CMSG_REQUEST_CARDS_LEFT, 56);
-	data.resize(8);
 	data.append(_left->_cards, 24);
 	data.append(_right->_cards, 24);
 
@@ -188,7 +185,6 @@ void Player::handleRoundOver()
 
 	WorldPacket data(CMSG_ROUND_OVER, 160);
 
-	data.resize(8);
 	data.append((uint8 *)&_playerInfo, 152);
 
 	sendPacket(&data);
