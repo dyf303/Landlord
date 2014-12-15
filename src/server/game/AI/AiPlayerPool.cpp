@@ -47,6 +47,7 @@ void AiPlayerPool::configureAiPlayer(Player * player, uint32 roomid)
 	PlayerInfo aiPlayerInfo;
 	
 	aiPlayerInfo.id = 2000 + rand() % 100;
+	aiPlayerInfo.icon_id = rand() % 4;
 	aiPlayerInfo.sex = rand() % 2;
 	aiPlayerInfo.gold = sWorld->getIntConfig(WorldIntConfigs(CONFIG_ROOM1_GOLD + roomid));
 	aiPlayerInfo.level = roomid * 2 + 1;
