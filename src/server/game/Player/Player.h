@@ -199,6 +199,12 @@ public:
 	void aiHandlLogout(WorldPacket* packet);
 	void aiHandGame();
 	bool RoundOver(uint32 outCardPlayerId);
+
+	void checkRoundOver();
+	bool bHaveSpring();
+	int32 calcMultiple();
+	void calcWinGold(Player * winPlayer,int32 Multiple);
+
 private:
 	WorldSession* _session;
 	int32 _expiration;
@@ -219,6 +225,10 @@ private:
 	uint8 _curOutCards[24];
 	CardType _curOutCardType;
 	int32 _winGold;
+
+	uint8 _outCardsCount;
+	uint8 _bombCount;
+//	uint32 _winPlayerId;
 
 	AiGameStatus _aiGameStatus;
 

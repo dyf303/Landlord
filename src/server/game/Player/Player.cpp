@@ -29,6 +29,8 @@ void Player::initPlayer()
 	_landlordPlayerId =-1;
 	_gameStatus = GAME_STATUS_WAIT_START;
 	_winGold = 0;
+	_outCardsCount = 0;
+	_bombCount = 0;
 	_aiGameStatus = AI_GAME_STATUS_NULL;
 
 	for (int i = 0; i < 7; ++i)
@@ -157,6 +159,10 @@ void Player::handleGrabLandlord()
 
 void Player::handleOutCard()
 {
+	++_outCardsCount;
+	if (_cardType == CARD_TYPE_BOMB || _cardType == CARD_TYPE_ROCKET)
+		++_bombCount;
+
 	WorldPacket data(CMSG_CARD_OUT, 40);
 	data << getid();
 	data << uint32(_cardType);
@@ -167,6 +173,8 @@ void Player::handleOutCard()
 	_gameStatus = GAME_STATUS_OUT_CARDED;
 	_right->setGameStatus(GAME_STATUS_START_OUT_CARD);
 	senToAll(&data, true);
+
+	checkRoundOver();
 }
 
 void Player::handleGetLeftPlayerCards()
@@ -183,11 +191,17 @@ void Player::handleRoundOver()
 {
 	UpdatePlayerData();
 
-	WorldPacket data(CMSG_ROUND_OVER, 160);
+	WorldPacket data(CMSG_ROUND_OVER, 56);
 
-	data.append((uint8 *)&_playerInfo, 152);
+	//data.append((uint8 *)&_playerInfo, 152);
+	data << _winGold;
+	data << (uint32)30;
+
+	data.append(_left->_cards, 24);
+	data.append(_right->_cards, 24);
 
 	sendPacket(&data);
+
 	_gameStatus = GAME_STATUS_ROUNDOVERED;
 
 	if (_left->getGameStatus() == GAME_STATUS_ROUNDOVERED &&
@@ -234,6 +248,23 @@ void Player::handLogOut()
 	if (_playerType == PLAYER_TYPE_USER)
 		GetSession()->setPlayer(nullptr);
 	_gameStatus = GAME_STATUS_LOG_OUTED;
+}
+
+void Player::checkRoundOver()
+{
+	if (0 == sOutCardAi->getCardsNumber(_cards))
+	{
+		int32 multiple = calcMultiple();
+
+		setGameStatus(GAME_STATUS_ROUNDOVERING);
+		calcWinGold(this, multiple);
+
+		_left->setGameStatus(GAME_STATUS_ROUNDOVERING);
+		_left->calcWinGold(this, multiple);
+
+		_right->setGameStatus(GAME_STATUS_ROUNDOVERING);
+		_right->calcWinGold(this, multiple);
+	}
 }
 
 void Player::UpdateCurOutCardsInfo(CardType cardType, uint8 * outCards, Player *outCardsPlayer, bool updateOther/* = false*/)
@@ -461,4 +492,60 @@ void Player::dealCards(uint8 * cards, uint8 * baseCards)
 	memcpy(_baseCards, baseCards, BASIC_CARD);
 
 	_gameStatus = GAME_STATUS_DEALING_CARD;
+}
+
+bool Player::bHaveSpring()
+{
+	if (getid() == _landlordPlayerId)
+	{
+		if (_left->_outCardsCount == 0 && _right->_outCardsCount == 0)
+			return true;
+	}
+	else
+	{
+		Player * landlord = _left->getid() == _landlordPlayerId ? _left : _right;
+		if (landlord->_outCardsCount == 1)
+			return true;
+	}
+	return false;
+}
+
+int32 Player::calcMultiple()
+{
+	uint32 Spring = bHaveSpring() ? 2 : 1;
+	int32 maxScore = std::max(_grabLandlordScore,std::max(_left->_grabLandlordScore,_right->_grabLandlordScore));
+
+	return maxScore * pow(2, _bombCount) * Spring;
+}
+
+void Player::calcWinGold(Player * winPlayer, int32 Multiple)
+{
+	int32 winGold = Multiple * 100;
+
+	Player * landlord = _left->getid() == _landlordPlayerId ? _left : _right;
+
+	bool bWin = winPlayer->getPlayerGameType() == getPlayerGameType();
+
+	if (landlord == this)//landlord
+	{
+		if (bWin)
+		{
+			_winGold = std::min((int32)_left->getPlayerInfo()->gold, winGold) + std::min((int32)_right->getPlayerInfo()->gold, winGold);
+		}
+		else
+		{
+			_winGold = -std::min((int32)_playerInfo.gold, 2 * winGold);
+		}
+	}
+	else //farmer
+	{
+		if (bWin)
+		{
+			_winGold = std::min((int32)landlord->getPlayerInfo()->gold / 2, winGold);
+		}
+		else
+		{
+			_winGold = -std::min((int32)_playerInfo.gold, winGold);
+		}
+	}
 }
