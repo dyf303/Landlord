@@ -191,9 +191,11 @@ void Player::handleRoundOver()
 {
 	UpdatePlayerData();
 
-	WorldPacket data(CMSG_ROUND_OVER, 56);
+	WorldPacket data(CMSG_ROUND_OVER, 64);
 
 	//data.append((uint8 *)&_playerInfo, 152);
+	data << _left->_winGold;
+	data << _right->_winGold;
 	data << _winGold;
 	data << (uint32)30;
 
