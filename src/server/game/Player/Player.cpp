@@ -149,12 +149,15 @@ void Player::handleGrabLandlord()
 	data << getLandlordId();
 
 	senToAll(&data,true);
+
 	_gameStatus = GAME_STATUS_GRABED_LAND_LORD;
 	if (getLandlordId() == getid())
 	{
 		arraggeCard();
 		_gameStatus = GAME_STATUS_START_OUT_CARD;
 	}
+
+	dealCardsAgain();
 }
 
 void Player::handleOutCard()
@@ -269,6 +272,28 @@ void Player::checkRoundOver()
 	}
 }
 
+bool Player::dealCardsAgain()
+{
+	int32 leftGrabScore = _left->getGrabLandlordScore();
+	int32 rightGrabScore = _right->getGrabLandlordScore();
+
+	if (_grabLandlordScore == 0 && leftGrabScore == 0 && rightGrabScore == 0 &&
+		getGameStatus() == GAME_STATUS_GRABED_LAND_LORD &&
+		_left->getGameStatus() == GAME_STATUS_GRABED_LAND_LORD &&
+		_right->getGameStatus() == GAME_STATUS_GRABED_LAND_LORD)
+	{
+		setGameStatus(GAME_STATUS_STARTED);
+		_grabLandlordScore = -1;
+		_left->setGameStatus(GAME_STATUS_STARTED);
+		_left->_grabLandlordScore = -1;
+		_right->setGameStatus(GAME_STATUS_STARTED);
+		_right->_grabLandlordScore = -1;
+
+		return true;
+	}
+	return false;
+}
+
 void Player::UpdateCurOutCardsInfo(CardType cardType, uint8 * outCards, Player *outCardsPlayer, bool updateOther/* = false*/)
 {
 	if (cardType != CARD_TYPE_PASS)
@@ -356,7 +381,8 @@ int32 Player::getLandlordId()
 	int32 rightGrabScore = _right->getGrabLandlordScore();
 	int32 maxScore = std::max(std::max(_grabLandlordScore, leftGrabScore), rightGrabScore);
 
-	if ((_grabLandlordScore != -1 && leftGrabScore != -1 && rightGrabScore != -1) || maxScore == 3)
+	if ((_grabLandlordScore != -1 && leftGrabScore != -1 && rightGrabScore != -1
+		&& (_grabLandlordScore != 0 || leftGrabScore != 0 || rightGrabScore != 0)) || maxScore == 3)
 	{	
 		if (maxScore == _grabLandlordScore)
 			_landlordPlayerId = getid();

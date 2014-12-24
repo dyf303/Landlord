@@ -48,7 +48,7 @@ struct ClientPktHeader
 	uint16 size;
     uint8 cmd;
 
-    bool IsValid() const { return size >= 4 && size < 10240 && cmd < NUM_MSG_TYPES; }
+    bool IsValid() const { return size >= 0 && size < 10240 && cmd < NUM_MSG_TYPES; }
 };
 
 #pragma pack(pop)

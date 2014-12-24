@@ -82,7 +82,7 @@ void Player::aiHandleGrabLandlord(WorldPacket* packet)
 
 	if (grabLandlordPlayerId == _left->getid() && landlordId == -1)
 	{
-		_grabLandlordScore = aiGrabLandlord(grabLandlordScore);
+	 	_grabLandlordScore = aiGrabLandlord(grabLandlordScore);
 		_aiDelay = sWorld->getIntConfig(CONFIG_AI_DELAY) * 2;
 		_aiGameStatus = AI_GAME_STATUS_GRAD_LANDLORD;
 	}

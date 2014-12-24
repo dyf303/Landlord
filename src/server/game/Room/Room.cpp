@@ -255,7 +255,7 @@ bool Room::allStart(threePlayer &threeP)
 	Player *p1 = threeP.first.second;
 	Player *p2 = threeP.second;
 
-	//return p0->started() && p1->started() && p2->started();
+	return p0->started() && p1->started() && p2->started();
 	return true;
 }
 

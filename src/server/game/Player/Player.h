@@ -188,6 +188,7 @@ public:
 	void handLogOut();
 	void notifyOther();
 	void arraggeCard();
+	bool dealCardsAgain();
 
 	void senToAll(WorldPacket* packet,bool bSelf = false);
 	void sendPacket(WorldPacket* packet);
