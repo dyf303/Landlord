@@ -112,7 +112,7 @@ void WorldSocket::AsyncWrite(WorldPacket& packet)
 
 void WorldSocket::AddSession(WorldPacket& recvPacket)
 {
-	_worldSession = new WorldSession(recvPacket.peek<uint32>(20), shared_from_this());
+	_worldSession = new WorldSession(recvPacket.peek<uint32>(1), shared_from_this());
 	_worldSession->QueuePacket(new WorldPacket(std::move(recvPacket)));
 	_worldSession->ResetTimeOutTime();
 	sWorld->AddSession(_worldSession);
