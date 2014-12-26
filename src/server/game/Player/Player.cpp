@@ -230,14 +230,15 @@ void Player::handLogOut()
 	{
 		logoutStatus = 2;
 	}
-	WorldPacket data(CMSG_LOG_OUT, 16);
-	data.resize(8);
+	WorldPacket data(CMSG_LOG_OUT, 4);
+	//data.resize(8);
 	data << getid();
-	data << logoutStatus;
+	//data << logoutStatus;
 
-	senToAll(&data,true);
+	senToAll(&data, false);
 
-	if (logoutStatus == 4)
+	/*if (logoutStatus == 4)*/
+	if (inTheGame())
 	{
 		if (_left->getPlayerType() == PLAYER_TYPE_USER || _right->getPlayerType() == PLAYER_TYPE_USER)
 		{

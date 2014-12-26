@@ -53,7 +53,6 @@ WorldSession::WorldSession(uint32 id, std::shared_ptr<WorldSocket> sock):
 /// WorldSession destructor
 WorldSession::~WorldSession()
 {
-	/// not login game
 	if (_player != nullptr)
 	{
 		_player->logOutPlayer();
@@ -209,12 +208,9 @@ void WorldSession::HandlePlayerLogin(WorldPacket& recvPacket)
 		_player->setRoomId(roomid);
 		sRoomMgr->AddPlayer(roomid, _player);
 
-		WorldPacket packet(CMSG_PLAYER_LOGIN,600);
+		WorldPacket packet(CMSG_PLAYER_LOGIN,4);
 
-		packet << uint32(0) << uint32(0) << uint32(1);
-
-		packet.resize(600);
-
+		packet << _player->getGameStatus();
 		SendPacket(&packet);
 	}
 	TC_LOG_INFO("server.worldserver", "Player: %s login,remote IP: %s", GetPlayerInfo().c_str(), _Address.c_str());

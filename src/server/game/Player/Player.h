@@ -151,7 +151,7 @@ public:
 	void setRightPlayer(Player * right){ _right = right; }
 	bool LogOut(){ return _gameStatus == GAME_STATUS_LOG_OUTED; }
 	bool idle(){ return _queueFlags == QUEUE_FLAGS_NULL; }
-	bool inTheGame(){ return (_gameStatus & 0x0f) > GAME_STATUS_DEALED_CARD && (_gameStatus & 0x0f) < GAME_STATUS_ROUNDOVERED; }
+	bool inTheGame(){ return (_gameStatus & 0x0f) >= GAME_STATUS_DEALING_CARD && (_gameStatus & 0x0f) < GAME_STATUS_ROUNDOVERED; }
 	bool started(){ return _playerInfo.start == 1; }
 	void setStart(){ _gameStatus = GAME_STATUS_STARTING; _playerInfo.start = 1; }
 	void dealCards(uint8 * cards, uint8 * baseCards);

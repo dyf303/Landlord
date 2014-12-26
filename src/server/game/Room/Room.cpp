@@ -41,12 +41,12 @@ void Room::Update(const uint32 diff)
 
 		if (player->LogOut())
 		{
-			if (!player->inTheGame())
-			{
+			//if (!player->inTheGame())
+			//{
 				_playerMap.erase(itr);
 				if (player->idle())/// if not idle, delete player in updateOne Two Three
 					RELEASE(player);
-			}	
+			//}	
 			continue;
 		}
 		if (player->getGameStatus() == GAME_STATUS_STARTED && player->getQueueFlags() == QUEUE_FLAGS_NULL)
