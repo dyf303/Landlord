@@ -69,7 +69,8 @@ class WorldSession
 		{
 			return m_timeOutTime <= 0;
 		}
-		void SendLoginError(uint8 code);
+		void SendLoginError(int8 code);
+		void KickPlayer();
 
     public:                                                 // opcodes handlers
 		void Handle_NULL(WorldPacket& recvPacket);          // not used

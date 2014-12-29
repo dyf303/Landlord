@@ -119,6 +119,12 @@ enum DeskFlag
 	RITHT = 1
 };
 
+enum LoginCode:int8
+{
+   LOGIN_SUCCESS   = 1,
+   HAVED_LOGIN     = -1
+};
+
 class Player
 {
 public:

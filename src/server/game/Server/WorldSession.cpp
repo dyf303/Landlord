@@ -180,12 +180,20 @@ void WorldSession::Handle_NULL(WorldPacket& recvPacket)
 		, GetOpcodeNameForLogging(recvPacket.GetOpcode()).c_str(), GetPlayerInfo().c_str());
 }
 
-void WorldSession::SendLoginError(uint8 code)
+void WorldSession::KickPlayer()
+{
+	if (_Socket)
+	{
+		SendLoginError(HAVED_LOGIN);
+		_Socket->CloseSocket();
+	}
+}
+
+void WorldSession::SendLoginError(int8 code)
 {
 	WorldPacket packet(CMSG_PLAYER_LOGIN, 4);
-	packet << uint32(0);
-	packet << uint32(0);
-	packet << uint32(code);
+
+	packet << code;
 
 	SendPacket(&packet);
 }
