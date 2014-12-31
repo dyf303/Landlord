@@ -184,9 +184,14 @@ void WorldSession::KickPlayer()
 {
 	if (_Socket)
 	{
-		SendLoginError(HAVED_LOGIN);
+		SendLoginError(LOGIN_HAVED_LOGIN);
 		_Socket->CloseSocket();
 	}
+}
+
+bool WorldSession::isRealPlayer()
+{
+	return _player->getPlayerType() == PLAYER_TYPE_USER;
 }
 
 void WorldSession::SendLoginError(int8 code)
@@ -205,9 +210,16 @@ void WorldSession::HandlePlayerLogin(WorldPacket& recvPacket)
 
 	recvPacket >> roomid;
 	recvPacket.read((uint8 *)&pInfo, sizeof(PlayerInfo));
-	if (sRoomMgr->getPlayer(pInfo.id))
-	{
 
+	_player = sRoomMgr->getPlayer(pInfo.id);
+	if (_player != nullptr)
+	{
+		_player->loadData(pInfo);
+		_player->setSession(this);
+		/// stop replace ai action
+		_player->stopAiAction();
+		recoverScene();
+		_player->setPlayerType(PLAYER_TYPE_USER);
 	}
 	else
 	{
@@ -218,7 +230,7 @@ void WorldSession::HandlePlayerLogin(WorldPacket& recvPacket)
 
 		WorldPacket packet(CMSG_PLAYER_LOGIN,4);
 
-		packet << _player->getGameStatus();
+		packet << LOGIN_SUCCESS;
 		SendPacket(&packet);
 	}
 	TC_LOG_INFO("server.worldserver", "Player: %s login,remote IP: %s", GetPlayerInfo().c_str(), _Address.c_str());
@@ -268,4 +280,90 @@ void WorldSession::HandlLogout(WorldPacket& recvPacket)
 	GameStatus preStatus = player->getGameStatus();
 
 	player->setGameStatus(GameStatus(preStatus | GAME_STATUS_LOG_OUTING));
+}
+
+int8 WorldSession::getCurGameStatus()
+{
+	Player * left = _player->_left;
+	Player * right = _player->_right;
+	if (_player->getGameStatus() < GAME_STATUS_START_OUT_CARD
+		&& left->getGameStatus() < GAME_STATUS_START_OUT_CARD
+		&& right->getGameStatus() < GAME_STATUS_START_OUT_CARD)
+	{
+		return LOGIN_GRANING_LANDLORD;
+	}
+	else if (_player->getGameStatus() < GAME_STATUS_ROUNDOVERING)
+	{
+		return LOGIN_OUT_CARDING;
+	}
+	else
+	{
+		return LOGIN_GAMEOVER;
+	}
+}
+
+void WorldSession::recoverScene()
+{
+	int8 curGameStatus = getCurGameStatus();
+	Player * left = _player->_left;
+	Player * right = _player->_right;
+
+	if (curGameStatus == LOGIN_GRANING_LANDLORD)
+	{
+		WorldPacket packet(CMSG_PLAYER_LOGIN, 20);
+
+		packet << uint8(LOGIN_GRANING_LANDLORD);
+
+		packet.append((uint8 *)left->getPlayerInfo(), sizeof(PlayerInfo));
+		packet.append((uint8 *)right->getPlayerInfo(), sizeof(PlayerInfo));
+
+		packet << _player->getDefaultLandlordUserId();
+		packet << left->getGrabLandlordScore();
+		packet << right->getGrabLandlordScore();
+		packet << _player->getGrabLandlordScore();
+
+		SendPacket(&packet);
+	}
+	else if (curGameStatus == LOGIN_OUT_CARDING)
+	{
+		WorldPacket packet(CMSG_PLAYER_LOGIN, 459);//1 + 152 * 2 + 4 + 3 + 20 + 4 + 20 * 3 + 20 * 3 + 1 * 3
+
+		packet << uint8(LOGIN_OUT_CARDING);
+
+		packet.append((uint8 *)left->getPlayerInfo(), sizeof(PlayerInfo));
+		packet.append((uint8 *)right->getPlayerInfo(), sizeof(PlayerInfo));
+
+		int32 LandlordScore = std::max(_player->getGrabLandlordScore(),std::max(left->getGrabLandlordScore(),right->getGrabLandlordScore()));
+		packet << LandlordScore;
+		packet << _player->getLandlordId();
+
+		packet.append(_player->_baseCards, 3);
+
+		packet.append(_player->_cards, 20);
+
+		//packet << _player->_curOutCardsPlayer->getid();
+		DeskFlag outingCardsPlayerDeskFlag = _player->getGameStatus() == GAME_STATUS_START_OUT_CARD ? SELF :
+			(left->getGameStatus() == GAME_STATUS_START_OUT_CARD ? LEFT : RIGHT);
+
+		packet << (uint8)outingCardsPlayerDeskFlag;
+		packet << (uint8)_player->_curOutCardType;
+
+		packet.append(left->_selfAllOutCards, 20);
+		packet.append(right->_selfAllOutCards, 20);
+		packet.append(_player->_selfAllOutCards, 20);
+
+		packet.append(left->_outCards, 20);
+		packet.append(right->_outCards, 20);
+		packet.append(_player->_outCards, 20);
+
+		packet << left->_bombCount;
+		packet << right->_bombCount;
+		packet << _player->_bombCount;
+
+		SendPacket(&packet);
+	}
+	else
+	{
+		_player->handleRoundOver();
+	}
 }

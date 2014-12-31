@@ -31,7 +31,7 @@ bool World::RemoveSession(uint32 id)
 {
 	SessionMap::const_iterator itr = m_sessions.find(id);
 
-	if (itr != m_sessions.end() && itr->second)
+	if (itr != m_sessions.end() && itr->second && itr->second->isRealPlayer())
 	{
 		return true;
 	}

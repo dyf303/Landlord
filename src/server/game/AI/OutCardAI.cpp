@@ -100,6 +100,18 @@ void OutCardAi::insertCard(uint8 cards[], uint8 card, uint32 cardSortNum)
 	cards[iIdx + 1] = card;
 }
 
+void OutCardAi::SaveOutCards(uint8 * allOutCards, uint8 * curOutCards)
+{
+	while (*allOutCards != CARD_TERMINATE)
+	{
+		++allOutCards;
+	}
+	while (*curOutCards != CARD_TERMINATE)
+	{
+		*allOutCards++ = *curOutCards++;
+	}
+}
+
 /*
  * out card logic
  */

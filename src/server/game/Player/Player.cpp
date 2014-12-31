@@ -40,6 +40,7 @@ void Player::initPlayer()
 		_outCards[i] = CARD_TERMINATE;
 		_curOutCards[i] = CARD_TERMINATE;
 		_cards[i] = CARD_TERMINATE;
+		_selfAllOutCards[i] = CARD_TERMINATE;
 	}
 
 	_expiration = sWorld->getIntConfig(CONFIG_WAIT_TIME);
@@ -162,6 +163,7 @@ void Player::handleGrabLandlord()
 
 void Player::handleOutCard()
 {
+	sOutCardAi->SaveOutCards(_selfAllOutCards, _outCards);
 	++_outCardsCount;
 	if (_cardType == CARD_TYPE_BOMB || _cardType == CARD_TYPE_ROCKET)
 		++_bombCount;
@@ -220,25 +222,14 @@ void Player::handleRoundOver()
 
 void Player::handLogOut()
 {
-	uint32 logoutStatus;
-	GameStatus preGameStatus = GameStatus(_gameStatus & 0x0f);
-	if (preGameStatus > GAME_STATUS_DEALING_CARD && preGameStatus < GAME_STATUS_ROUNDOVERING)
-	{
-		logoutStatus = 4;
-	}
-	else
-	{
-		logoutStatus = 2;
-	}
+	bool bInGaming = inTheGame();
+
 	WorldPacket data(CMSG_LOG_OUT, 4);
-	//data.resize(8);
 	data << getid();
-	//data << logoutStatus;
 
 	senToAll(&data, false);
 
-	/*if (logoutStatus == 4)*/
-	if (inTheGame())
+	if (bInGaming)
 	{
 		if (_left->getPlayerType() == PLAYER_TYPE_USER || _right->getPlayerType() == PLAYER_TYPE_USER)
 		{
@@ -466,7 +457,7 @@ void Player::sendTwoDesk()
 	}
 	else
 	{
-		data << uint8(RITHT);
+		data << uint8(RIGHT);
 	}
 
 	Player *player = _right != nullptr ? _right : _left;
@@ -525,14 +516,14 @@ void Player::dealCards(uint8 * cards, uint8 * baseCards)
 
 bool Player::bHaveSpring()
 {
-	if (getid() == _landlordPlayerId)
+	if (getid() == getLandlordId())
 	{
 		if (_left->_outCardsCount == 0 && _right->_outCardsCount == 0)
 			return true;
 	}
 	else
 	{
-		Player * landlord = _left->getid() == _landlordPlayerId ? _left : _right;
+		Player * landlord = _left->getid() == getLandlordId() ? _left : _right;
 		if (landlord->_outCardsCount == 1)
 			return true;
 	}
@@ -551,7 +542,7 @@ void Player::calcWinGold(Player * winPlayer, int32 Multiple)
 {
 	int32 winGold = Multiple * 100;
 
-	Player * landlord = _left->getid() == _landlordPlayerId ? _left : _right;
+	Player * landlord = _left->getid() == getLandlordId() ? _left : _right;
 
 	bool bWin = winPlayer->getPlayerGameType() == getPlayerGameType();
 

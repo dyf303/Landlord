@@ -115,14 +115,18 @@ enum CardType
 
 enum DeskFlag
 {
-	LEFT = 0,
-	RITHT = 1
+	LEFT  = 0,
+	RIGHT = 1,
+	SELF  = 2
 };
 
 enum LoginCode:int8
 {
-   LOGIN_SUCCESS   = 1,
-   HAVED_LOGIN     = -1
+   LOGIN_HAVED_LOGIN       = -1,
+   LOGIN_SUCCESS           = 1,
+   LOGIN_GRANING_LANDLORD  = 2,
+   LOGIN_OUT_CARDING       = 3,
+   LOGIN_GAMEOVER          = 4, 
 };
 
 class Player
@@ -161,7 +165,7 @@ public:
 	bool started(){ return _playerInfo.start == 1; }
 	void setStart(){ _gameStatus = GAME_STATUS_STARTING; _playerInfo.start = 1; }
 	void dealCards(uint8 * cards, uint8 * baseCards);
-	bool roundOver(){ return _gameStatus == GAME_STATUS_ROUNDOVERED; };
+	bool roundOver(){ return _gameStatus == GAME_STATUS_ROUNDOVERED; }
 	void setRoomId(uint32 roomid){ _roomid = roomid; }
 	uint32 getRoomId(){ return _roomid; }
 	void setPlayerType(PlayerType type){ _playerType = type; }
@@ -174,10 +178,10 @@ public:
 	int32 getGrabLandlordScore(){ return _grabLandlordScore; }
 	int32 getLandlordId();
 	void setLandlordId(uint32 id){ _landlordPlayerId = id; }
-	uint32 aiGrabLandlord(uint32 score);
 	uint32 calcDoubleScore();
 	void resetGame();
 	PlayerGameType getPlayerGameType();
+
 
 	void UpdateQueueStatus();
 	void UpdateAiDelay(const uint32 diff);
@@ -198,14 +202,16 @@ public:
 
 	void senToAll(WorldPacket* packet,bool bSelf = false);
 	void sendPacket(WorldPacket* packet);
-	void aiRecvPacket(WorldPacket* packet);
 
+	void aiRecvPacket(WorldPacket* packet);
 	void aiHandleDealCard(WorldPacket* packet);
 	void aiHandleGrabLandlord(WorldPacket* packet);
 	void aiHandleOutCards(WorldPacket* packet);
 	void aiHandlLogout(WorldPacket* packet);
 	void aiHandGame();
 	bool RoundOver(uint32 outCardPlayerId);
+	uint32 aiGrabLandlord();
+	void stopAiAction(){ _aiGameStatus = AI_GAME_STATUS_NULL; }
 
 	void checkRoundOver();
 	bool bHaveSpring();
@@ -216,8 +222,6 @@ private:
 	WorldSession* _session;
 	int32 _expiration;
 	int32 _aiDelay;
-	uint8 _cards[24];	
-	uint8 _baseCards[7];
 	uint32 _roomid;
 	Player *_left, *_right,*_curOutCardsPlayer;
 	AtQueueFlags _queueFlags;
@@ -227,12 +231,16 @@ private:
 	uint32 _defaultGrabLandlordPlayerId;
 	int32 _grabLandlordScore;
 	int32 _landlordPlayerId;
+
 	CardType _cardType;
+	uint8 _cards[24];
+	uint8 _baseCards[7];
 	uint8  _outCards[24];
 	uint8 _curOutCards[24];
+	uint8 _selfAllOutCards[24];
 	CardType _curOutCardType;
-	int32 _winGold;
 
+	int32 _winGold;
 	uint8 _outCardsCount;
 	uint8 _bombCount;
 //	uint32 _winPlayerId;

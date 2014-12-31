@@ -14,6 +14,7 @@ public:
 	void Update(const uint32 diff);
 
 	void AddPlayer(uint32 id,Player *player,bool inOne = true);
+	Player * findPlayer(uint32 id);
 
 	typedef std::unordered_map<uint32, Player*> PlayerMapType;
 	typedef std::list<Player *> onePlayerList;

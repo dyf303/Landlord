@@ -88,6 +88,15 @@ uint32 RoomManager::GetNumPlayers()
 
 Player* RoomManager::getPlayer(uint32 id)
 {
+	for (RoomMapType::iterator itr = _roomMap.begin(); itr != _roomMap.end(); ++itr)
+    {
+        Room* room = itr->second;
+		Player * player;
+
+		player = room->findPlayer(id);
+		if (player != nullptr)
+			return player;
+    }
 	return nullptr;
 }
 

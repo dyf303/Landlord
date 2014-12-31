@@ -71,6 +71,9 @@ class WorldSession
 		}
 		void SendLoginError(int8 code);
 		void KickPlayer();
+		bool isRealPlayer();
+		int8 getCurGameStatus();
+		void recoverScene();
 
     public:                                                 // opcodes handlers
 		void Handle_NULL(WorldPacket& recvPacket);          // not used

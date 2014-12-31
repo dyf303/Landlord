@@ -17,6 +17,7 @@ public:
 	void updateCardsFace(uint8* SelfCard, uint8* OutCard);
 	uint32 getCardsNumber(uint8 * cards);
 	void arraggeCard(uint8 cards[], uint32 num);
+	void SaveOutCards(uint8 * allOutCards,uint8 * curOutCards);
 
 private:
 	OutCardAi();

@@ -351,3 +351,13 @@ void Room::AddPlayer(uint32 id, Player *player, bool inOne)
 	  _OnePlayerList.push_back(player);
 	}		 
 }
+
+Player * Room::findPlayer(uint32 id)
+{
+	PlayerMapType::iterator itr = _playerMap.find(id);
+	if (itr != _playerMap.end())
+	{
+		return itr->second;
+	}
+	return nullptr;
+}
