@@ -168,10 +168,13 @@ void Player::handleOutCard()
 	if (_cardType == CARD_TYPE_BOMB || _cardType == CARD_TYPE_ROCKET)
 		++_bombCount;
 
+	uint8 cardsNumber = sOutCardAi->getCardsNumber(_outCards);
+
 	WorldPacket data(CMSG_CARD_OUT, 40);
 	data << getid();
 	data << uint32(_cardType);
-	data.append(_outCards, 24);
+	if (cardsNumber > 0)
+		data.append(_outCards, cardsNumber);
 
 	sOutCardAi->updateCardsFace(_cards, _outCards);
 	UpdateCurOutCardsInfo(_cardType, _outCards, this, true);
@@ -198,7 +201,6 @@ void Player::handleRoundOver()
 
 	WorldPacket data(CMSG_ROUND_OVER, 64);
 
-	//data.append((uint8 *)&_playerInfo, 152);
 	data << _left->_winGold;
 	data << _right->_winGold;
 	data << _winGold;
@@ -290,6 +292,7 @@ void Player::UpdateCurOutCardsInfo(CardType cardType, uint8 * outCards, Player *
 {
 	if (cardType != CARD_TYPE_PASS)
 	{
+		memset(_curOutCards, CARD_TERMINATE,24);
 		memcpy(_curOutCards, outCards, sizeof(_curOutCards));
 		_curOutCardType = cardType;
 		_curOutCardsPlayer = outCardsPlayer;

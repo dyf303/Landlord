@@ -109,7 +109,7 @@ void Player::aiHandleOutCards(WorldPacket* packet)
 
 	*packet >> outCardsPlayerId;
 	*packet >> outCardsType;
-	packet->read((uint8 *)outCards, 24);
+	packet->readRemain((uint8 *)outCards);
 
 	if (RoundOver(outCardsPlayerId))
 	{

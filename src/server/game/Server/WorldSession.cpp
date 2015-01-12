@@ -252,8 +252,9 @@ void WorldSession::HandleOutCards(WorldPacket& recvPacket)
 {
 	Player * player = getPlayer();
 
+	memset(player->_outCards, CARD_TERMINATE, 24);
 	recvPacket.read((uint8 *)&player->_cardType,4);
-	recvPacket.read((uint8 *)player->_outCards, 24);
+	recvPacket.readRemain((uint8 *)player->_outCards);
 
 	player->setGameStatus(GAME_STATUS_OUT_CARDING);
 }

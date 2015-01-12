@@ -365,6 +365,14 @@ class ByteBuffer
             _rpos += len;
         }
 
+		void readRemain(uint8 *dest)
+		{
+			if (size() == _rpos)
+				return;
+			std::memcpy(dest, &_storage[_rpos], size() - _rpos);
+			_rpos = size();
+		}
+
         void readPackGUID(uint64& guid)
         {
             if (rpos() + 1 > size())
