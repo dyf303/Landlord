@@ -142,6 +142,7 @@ void Player::aiHandlLogout(WorldPacket* packet)
 		|| _left->getPlayerType()&PLAYER_TYPE_AI || _right->getPlayerType()&PLAYER_TYPE_AI)
 	{
 		_gameStatus = GAME_STATUS_LOG_OUTED;
+		_aiGameStatus = AI_GAME_STATUS_NULL;
 	}
 }
 

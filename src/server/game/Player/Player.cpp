@@ -91,7 +91,7 @@ void Player::UpdateQueueStatus()
 	}
 	else if (_left != nullptr || _right != nullptr)
 	{
-		if (_queueFlags != QUEUE_FLAGS_TWO)
+		if (_queueFlags == QUEUE_FLAGS_ONE || _queueFlags == QUEUE_FLAGS_NULL)
 		{
 			_queueFlags = QUEUE_FLAGS_TWO;
 			sendTwoDesk();
