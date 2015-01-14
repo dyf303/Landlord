@@ -470,7 +470,7 @@ int32 OutCardAi::getPlayOutCard(Player * player,CardType *cardType)
 				{
 					memset(player->_outCards, CARD_TERMINATE, sizeof(player->_outCards));
 				}
-				else if (CARD_TYPE_PASS != playOutMaxCardsByType(player->_outCards, player->_outCards, player->_curOutCardType, iCardsSelfNum))
+				else if (CARD_TYPE_PASS != playOutMaxCardsByType(player->_cards, player->_outCards, player->_curOutCardType, iCardsSelfNum))
 				{
 					/// 当前收到的牌的主牌信息
 					int32 iMainCardNumRecv = (getMainCardFromRecv(player->_curOutCardType, player->_curOutCards, iCardsRecvNum) & 0x0f);

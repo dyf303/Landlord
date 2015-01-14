@@ -229,7 +229,7 @@ void Player::handLogOut()
 	WorldPacket data(CMSG_LOG_OUT, 4);
 	data << getid();
 
-	senToAll(&data, false);
+	senToAll(&data, true);
 
 	if (bInGaming)
 	{
